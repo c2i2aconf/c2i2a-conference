@@ -46,7 +46,7 @@ export default async function SponsorsPage({
       </div>
       
       {!edition || sponsors.length === 0 ? (
-        <p className="text-center text-muted-foreground">Aucun partenaire n'a été annoncé pour le moment.</p>
+        <p className="text-center text-muted-foreground">Aucun partenaire n&apos;a été annoncé pour le moment.</p>
       ) : (
         <div className="space-y-16">
           {tiers.map((tier) => {

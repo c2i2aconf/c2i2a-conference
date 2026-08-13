@@ -22,7 +22,7 @@ export default async function CommitteesPage({
       <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-12 text-center">{t('committees')}</h1>
       
       {!edition || committees.length === 0 ? (
-        <p className="text-center text-muted-foreground">Aucun comité n'a été annoncé pour le moment.</p>
+        <p className="text-center text-muted-foreground">Aucun comité n&apos;a été annoncé pour le moment.</p>
       ) : (
         <div className="space-y-12">
           {scientific && (

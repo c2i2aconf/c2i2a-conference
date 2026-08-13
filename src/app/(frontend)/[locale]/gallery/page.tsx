@@ -1,9 +1,4 @@
-'use client'
-
-import React, { useState } from 'react'
-import { useTranslations } from 'next-intl'
-// Note: We need a server component to fetch, but the page can be split. Let's make this page server component and a client component for the grid.
-// Let's write the server component wrapper directly here and the client component inside it, or just use normal React server component pattern. Wait, I can't put `use client` with async server functions in the same file. I need to make a client component or do it without a lightbox.
+import React from 'react'
 // I will just make it a server component that renders standard images for now. A lightbox can be added later or we can do a simple CSS hover scale.
 
 import { getTranslations, setRequestLocale } from 'next-intl/server'

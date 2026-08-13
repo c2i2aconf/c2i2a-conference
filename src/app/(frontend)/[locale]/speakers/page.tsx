@@ -26,7 +26,7 @@ export default async function SpeakersPage({
       </div>
       
       {!edition || speakers.length === 0 ? (
-        <p className="text-center text-muted-foreground">Aucun intervenant n'a été annoncé pour le moment.</p>
+        <p className="text-center text-muted-foreground">Aucun intervenant n&apos;a été annoncé pour le moment.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {speakers.map((speaker) => (

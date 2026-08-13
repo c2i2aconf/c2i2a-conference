@@ -28,7 +28,7 @@ export default async function DatesPage({
       <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-12 text-center">{t('title')}</h1>
       
       {!edition || dates.length === 0 ? (
-        <p className="text-center text-muted-foreground">Aucune date n'a été annoncée pour le moment.</p>
+        <p className="text-center text-muted-foreground">Aucune date n&apos;a été annoncée pour le moment.</p>
       ) : (
         <div className="relative border-l-2 border-muted ml-4 md:ml-8 space-y-12">
           {dates.map((item, index) => {
