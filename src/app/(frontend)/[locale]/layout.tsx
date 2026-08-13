@@ -39,6 +39,9 @@ export async function generateMetadata({
   }
 }
 
+import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
+
 export default async function LocaleLayout({
   children,
   params,
@@ -58,7 +61,13 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <NextIntlClientProvider>{children}</NextIntlClientProvider>
+          <NextIntlClientProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>
