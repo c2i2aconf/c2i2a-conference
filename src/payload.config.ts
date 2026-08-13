@@ -1,3 +1,6 @@
+// Must be first — patches pg.Pool to use Neon's WebSocket driver (bypasses port 5432 blocks)
+import './lib/db-setup'
+
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { resendAdapter } from '@payloadcms/email-resend'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'

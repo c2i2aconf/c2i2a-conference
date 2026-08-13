@@ -16,7 +16,7 @@ async function getLiveEdition(locale: string): Promise<Edition | null> {
     const payload = await getPayload({ config: await config })
     const { docs } = await payload.find({
       collection: 'editions',
-      where: { status: { equals: 'live' } },
+      where: { editionStatus: { equals: 'live' } },
       limit: 1,
       locale: locale as 'fr' | 'en',
       fallbackLocale: 'fr',

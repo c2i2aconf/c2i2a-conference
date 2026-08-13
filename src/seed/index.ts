@@ -38,8 +38,7 @@ const seed = async () => {
         startDate: '2024-06-01',
         endDate: '2024-06-01',
         venue: 'Marrakech, Maroc',
-        status: 'archived',
-        _status: 'published',
+        editionStatus: 'archived',
       },
     })
     await payload.update({
@@ -76,8 +75,7 @@ const seed = async () => {
         startDate: `${currentYear}-06-01`,
         endDate: `${currentYear}-06-01`,
         venue: 'HEEC, Marrakech',
-        status: 'live',
-        _status: 'published',
+        editionStatus: 'live',
       },
     })
     await payload.update({

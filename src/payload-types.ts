@@ -212,7 +212,7 @@ export interface Edition {
     };
     [k: string]: unknown;
   } | null;
-  status: 'draft' | 'live' | 'archived';
+  editionStatus: 'draft' | 'live' | 'archived';
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -721,7 +721,7 @@ export interface EditionsSelect<T extends boolean = true> {
   bannerImage?: T;
   posterImage?: T;
   description?: T;
-  status?: T;
+  editionStatus?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

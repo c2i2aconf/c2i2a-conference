@@ -84,7 +84,7 @@ export const Editions: CollectionConfig = {
       localized: true,
     },
     {
-      name: 'status',
+      name: 'editionStatus',
       type: 'select',
       required: true,
       defaultValue: 'draft',
