@@ -1,0 +1,111 @@
+{
+  "metadata": {
+    "title": "C2I2A — International Conference on Artificial Intelligence and its Applications",
+    "description": "C2I2A is the international conference on artificial intelligence and its applications, organized by HEEC school, Marrakech."
+  },
+  "nav": {
+    "home": "Home",
+    "about": "Conference description",
+    "program": "Program",
+    "dates": "Important dates",
+    "registration": "Registration",
+    "submission": "New submission",
+    "gallery": "Photo gallery",
+    "sponsors": "Partners",
+    "access": "Venue & access",
+    "committees": "Committees",
+    "scientificCommittee": "Scientific committee",
+    "organizationCommittee": "Organization committee",
+    "contact": "Contact",
+    "archive": "Past editions",
+    "speakers": "Speakers"
+  },
+  "common": {
+    "register": "Register",
+    "submit": "Submit an abstract",
+    "learnMore": "Learn more",
+    "readMore": "Read more",
+    "viewAll": "View all",
+    "back": "Back",
+    "loading": "Loading…",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "free": "Free",
+    "language": "Language"
+  },
+  "home": {
+    "organizedBy": "Organized by HEEC school — Marrakech, Morocco",
+    "countdownTitle": "The conference starts in",
+    "aboutTitle": "About the conference",
+    "keyDatesTitle": "Key dates",
+    "speakersTitle": "Speakers",
+    "sponsorsTitle": "Our partners"
+  },
+  "program": {
+    "title": "Program",
+    "filterByRoom": "Filter by room",
+    "filterByType": "Filter by type",
+    "allRooms": "All rooms",
+    "allTypes": "All types",
+    "types": {
+      "keynote": "Plenary session",
+      "session": "Session",
+      "break": "Break",
+      "logistics": "Logistics",
+      "ceremony": "Ceremony",
+      "tour": "Tour"
+    }
+  },
+  "dates": {
+    "title": "Important dates",
+    "open": "Open",
+    "closed": "Closed",
+    "extended": "Extended",
+    "upcoming": "Upcoming"
+  },
+  "registration": {
+    "title": "Registration",
+    "subtitle": "Register for free to attend the conference",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "affiliation": "Affiliation",
+    "country": "Country",
+    "submit": "Confirm my registration",
+    "success": "Registration saved! Check your inbox."
+  },
+  "submission": {
+    "title": "New submission",
+    "subtitle": "Submit your abstract or paper",
+    "paperTitle": "Paper title",
+    "abstract": "Abstract",
+    "file": "File (PDF)",
+    "submit": "Submit",
+    "success": "Submission received! You will be notified after review.",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    }
+  },
+  "archive": {
+    "title": "Past editions",
+    "subtitle": "The history of the C2I2A conference, year after year",
+    "viewEdition": "View edition"
+  },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Sign out",
+    "magicLinkSent": "Magic link sent! Check your inbox.",
+    "emailPlaceholder": "you@email.com",
+    "sendMagicLink": "Send me a magic link"
+  },
+  "footer": {
+    "contact": "Contact",
+    "followUs": "Follow us",
+    "rights": "All rights reserved",
+    "organizedBy": "Organized by"
+  }
+}

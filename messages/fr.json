@@ -1,0 +1,111 @@
+{
+  "metadata": {
+    "title": "C2I2A — Colloque International sur l'Intelligence Artificielle et ses Applications",
+    "description": "C2I2A est le colloque international sur l'intelligence artificielle et ses applications, organisé par l'école HEEC Marrakech."
+  },
+  "nav": {
+    "home": "Accueil",
+    "about": "Descriptif du colloque",
+    "program": "Programme",
+    "dates": "Dates importantes",
+    "registration": "Inscription",
+    "submission": "Nouvelle soumission",
+    "gallery": "Galerie photo",
+    "sponsors": "Partenaires",
+    "access": "Plan d'accès",
+    "committees": "Comités",
+    "scientificCommittee": "Comité scientifique",
+    "organizationCommittee": "Comité d'organisation",
+    "contact": "Contacts",
+    "archive": "Éditions précédentes",
+    "speakers": "Intervenants"
+  },
+  "common": {
+    "register": "S'inscrire",
+    "submit": "Soumettre un résumé",
+    "learnMore": "En savoir plus",
+    "readMore": "Lire la suite",
+    "viewAll": "Tout voir",
+    "back": "Retour",
+    "loading": "Chargement…",
+    "days": "Jours",
+    "hours": "Heures",
+    "minutes": "Minutes",
+    "seconds": "Secondes",
+    "free": "Gratuit",
+    "language": "Langue"
+  },
+  "home": {
+    "organizedBy": "Organisé par l'école HEEC — Marrakech, Maroc",
+    "countdownTitle": "Le colloque commence dans",
+    "aboutTitle": "À propos du colloque",
+    "keyDatesTitle": "Dates clés",
+    "speakersTitle": "Intervenants",
+    "sponsorsTitle": "Nos partenaires"
+  },
+  "program": {
+    "title": "Programme",
+    "filterByRoom": "Filtrer par salle",
+    "filterByType": "Filtrer par type",
+    "allRooms": "Toutes les salles",
+    "allTypes": "Tous les types",
+    "types": {
+      "keynote": "Session plénière",
+      "session": "Session",
+      "break": "Pause",
+      "logistics": "Logistique",
+      "ceremony": "Cérémonie",
+      "tour": "Visite"
+    }
+  },
+  "dates": {
+    "title": "Dates importantes",
+    "open": "Ouvert",
+    "closed": "Clôturé",
+    "extended": "Prolongé",
+    "upcoming": "À venir"
+  },
+  "registration": {
+    "title": "Inscription",
+    "subtitle": "Inscrivez-vous gratuitement pour participer au colloque",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "E-mail",
+    "affiliation": "Affiliation",
+    "country": "Pays",
+    "submit": "Valider mon inscription",
+    "success": "Inscription enregistrée ! Vérifiez votre boîte mail."
+  },
+  "submission": {
+    "title": "Nouvelle soumission",
+    "subtitle": "Déposez votre résumé ou article",
+    "paperTitle": "Titre de la communication",
+    "abstract": "Résumé",
+    "file": "Fichier (PDF)",
+    "submit": "Déposer",
+    "success": "Soumission reçue ! Vous serez notifié après relecture.",
+    "status": {
+      "pending": "En attente",
+      "accepted": "Accepté",
+      "rejected": "Refusé"
+    }
+  },
+  "archive": {
+    "title": "Éditions précédentes",
+    "subtitle": "L'historique du colloque C2I2A, année après année",
+    "viewEdition": "Voir l'édition"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "magicLinkSent": "Lien magique envoyé ! Vérifiez votre boîte mail.",
+    "emailPlaceholder": "votre@email.com",
+    "sendMagicLink": "Recevoir un lien magique"
+  },
+  "footer": {
+    "contact": "Contact",
+    "followUs": "Suivez-nous",
+    "rights": "Tous droits réservés",
+    "organizedBy": "Organisé par"
+  }
+}
