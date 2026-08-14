@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import Image from 'next/image'
 import { getArchivedEditions } from '@/lib/queries'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Link } from '@/i18n/navigation'
@@ -32,11 +33,13 @@ export default async function ArchiveIndexPage({
             <Link key={edition.id} href={`/archive/${edition.year}`} className="block group">
               <Card className="h-full overflow-hidden hover:shadow-xl transition-all group-hover:border-primary">
                 {edition.posterImage && typeof edition.posterImage === 'object' && edition.posterImage.url ? (
-                  <div className="aspect-[4/3] overflow-hidden bg-muted">
-                    <img
+                  <div className="aspect-[4/3] relative overflow-hidden bg-muted">
+                    <Image
                       src={edition.posterImage.url}
                       alt={edition.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                 ) : (

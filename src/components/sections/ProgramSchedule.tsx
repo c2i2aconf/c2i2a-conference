@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useTranslations } from 'next-intl'
-import { Session, Speaker, Room } from '@/payload-types'
+import { Session } from '@/payload-types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -10,16 +10,6 @@ import { MapPin, Clock } from 'lucide-react'
 
 interface ProgramScheduleProps {
   sessions: Session[]
-}
-
-function getBadgeVariant(type: Session['type']) {
-  switch (type) {
-    case 'keynote': return 'default'
-    case 'ceremony': return 'secondary'
-    case 'break':
-    case 'logistics': return 'outline'
-    default: return 'outline'
-  }
 }
 
 function getBadgeColor(type: Session['type']) {
@@ -49,15 +39,10 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
 
   const [activeDate, setActiveDate] = React.useState(groupedByDate[0]?.[0] || '')
 
-  if (!sessions || sessions.length === 0) {
-    return (
-      <div className="py-12 text-center text-muted-foreground">
-        Programme non disponible pour le moment.
-      </div>
-    )
-  }
-
-  const activeSessions = groupedByDate.find(g => g[0] === activeDate)?.[1] || []
+  const activeSessions = React.useMemo(
+    () => groupedByDate.find(g => g[0] === activeDate)?.[1] || [],
+    [groupedByDate, activeDate],
+  )
 
   // Group active sessions by time slot
   const timeSlots = React.useMemo(() => {
@@ -74,6 +59,14 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
       return timeA.localeCompare(timeB)
     })
   }, [activeSessions])
+
+  if (!sessions || sessions.length === 0) {
+    return (
+      <div className="py-12 text-center text-muted-foreground">
+        Programme non disponible pour le moment.
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

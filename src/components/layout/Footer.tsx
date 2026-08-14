@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { getTranslations, getLocale } from 'next-intl/server'
-import { Link } from '@/i18n/navigation'
 import { getSiteSettings } from '@/lib/queries'
 import { Globe, Link as LinkIcon, MessageCircle, Mail } from 'lucide-react'
 

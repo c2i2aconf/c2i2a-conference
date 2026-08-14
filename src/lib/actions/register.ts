@@ -40,7 +40,7 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
     }
 
     // Create registration
-    const registration = await payload.create({
+    await payload.create({
       collection: 'registrations',
       data: {
         firstName,

@@ -31,7 +31,7 @@ export default async function DatesPage({
         <p className="text-center text-muted-foreground">Aucune date n&apos;a été annoncée pour le moment.</p>
       ) : (
         <div className="relative border-l-2 border-muted ml-4 md:ml-8 space-y-12">
-          {dates.map((item, index) => {
+          {dates.map((item) => {
             const dateObj = new Date(item.date)
             const dateStr = dateObj.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
             const endStr = item.endDate ? new Date(item.endDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }) : null

@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import Image from 'next/image'
 import { getLiveEdition, getSponsors } from '@/lib/queries'
-import { Card, CardContent } from '@/components/ui/card'
 import { Sponsor } from '@/payload-types'
 
 export default async function SponsorsPage({
@@ -75,10 +75,12 @@ export default async function SponsorsPage({
                     >
                       {sponsor.logo && typeof sponsor.logo === 'object' && sponsor.logo.url ? (
                         <div className="w-full h-full flex items-center justify-center">
-                          <img
+                          <Image
                             src={sponsor.logo.url}
                             alt={sponsor.name}
-                            className="max-w-full max-h-full object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                            width={sponsor.logo.width ?? 300}
+                            height={sponsor.logo.height ?? 120}
+                            className="max-w-full max-h-full w-auto h-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
                           />
                         </div>
                       ) : (

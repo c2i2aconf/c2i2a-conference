@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import Image from 'next/image'
 import { getLiveEdition, getSpeakers } from '@/lib/queries'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -33,10 +34,12 @@ export default async function SpeakersPage({
             <Card key={speaker.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-square relative bg-muted flex items-center justify-center">
                 {speaker.photo && typeof speaker.photo === 'object' && speaker.photo.url ? (
-                  <img
+                  <Image
                     src={speaker.photo.url}
                     alt={speaker.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 100vw, 25vw"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="text-6xl text-muted-foreground/30 font-bold">

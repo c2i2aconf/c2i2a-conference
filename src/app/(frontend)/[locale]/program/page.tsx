@@ -1,7 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getLiveEdition, getSessions } from '@/lib/queries'
 import { ProgramSchedule } from '@/components/sections/ProgramSchedule'
-import { notFound } from 'next/navigation'
 
 export default async function ProgramPage({
   params,

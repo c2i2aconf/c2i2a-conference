@@ -12,7 +12,7 @@ export function NavLink({ href, exact, className, children, ...props }: NavLinkP
   const pathname = usePathname()
   
   // Use string conversion to safely compare pathnames
-  const hrefString = typeof href === 'string' ? href : (href as any).pathname || ''
+  const hrefString = typeof href === 'string' ? href : (href as { pathname?: string }).pathname || ''
   
   const isActive = exact 
     ? pathname === hrefString 

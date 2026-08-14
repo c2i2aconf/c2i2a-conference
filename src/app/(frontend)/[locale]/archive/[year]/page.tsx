@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import Image from 'next/image'
 import { getEditionByYear, getSessions, getSpeakers, getGalleryItems } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import { ProgramSchedule } from '@/components/sections/ProgramSchedule'
@@ -50,9 +51,15 @@ export default async function ArchiveYearPage({
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {speakers.map(speaker => (
               <Card key={speaker.id} className="text-center overflow-hidden">
-                <div className="aspect-square bg-muted">
+                <div className="aspect-square relative bg-muted">
                   {speaker.photo && typeof speaker.photo === 'object' && speaker.photo.url ? (
-                    <img src={speaker.photo.url} alt={speaker.name} className="w-full h-full object-cover" />
+                    <Image
+                      src={speaker.photo.url}
+                      alt={speaker.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 16vw"
+                      className="object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-4xl text-muted-foreground/30 font-bold">
                       {speaker.name.charAt(0)}
@@ -77,7 +84,14 @@ export default async function ArchiveYearPage({
               if (!item.image || typeof item.image !== 'object' || !item.image.url) return null
               return (
                 <div key={item.id} className="break-inside-avoid rounded-xl overflow-hidden">
-                  <img src={item.image.url} alt={item.caption || ''} className="w-full h-auto" />
+                  <Image
+                    src={item.image.url}
+                    alt={item.caption || ''}
+                    width={item.image.width ?? 1200}
+                    height={item.image.height ?? 800}
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    className="w-full h-auto"
+                  />
                 </div>
               )
             })}

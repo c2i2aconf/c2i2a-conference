@@ -2,6 +2,7 @@ import React from 'react'
 // I will just make it a server component that renders standard images for now. A lightbox can be added later or we can do a simple CSS hover scale.
 
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import Image from 'next/image'
 import { getLiveEdition, getGalleryItems } from '@/lib/queries'
 
 export default async function GalleryPage({
@@ -33,11 +34,13 @@ export default async function GalleryPage({
             if (!item.image || typeof item.image !== 'object' || !item.image.url) return null
             return (
               <div key={item.id} className="break-inside-avoid relative group rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all">
-                <img
+                <Image
                   src={item.image.url}
                   alt={item.caption || 'Gallery image'}
+                  width={item.image.width ?? 1200}
+                  height={item.image.height ?? 800}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
                 />
                 {item.caption && (
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">

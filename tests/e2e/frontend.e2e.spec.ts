@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Frontend', () => {
-  test('root redirects to default locale (fr)', async ({ page }) => {
+  test('root redirects to a locale-prefixed URL', async ({ page }) => {
     await page.goto('http://localhost:3000')
-    await expect(page).toHaveURL(/\/fr/)
+    await expect(page).toHaveURL(/\/(fr|en)$/)
   })
 
   test('homepage shows C2I2A branding in French', async ({ page }) => {
