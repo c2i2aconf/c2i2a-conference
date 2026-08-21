@@ -27,6 +27,23 @@ export const SiteSettings: GlobalConfig = {
       localized: true,
     },
     {
+      name: 'organizationName',
+      type: 'text',
+      localized: true,
+      required: true,
+      defaultValue: 'HEEC Marrakech',
+    },
+    {
+      name: 'organizationAddress',
+      type: 'textarea',
+      localized: true,
+    },
+    {
+      name: 'copyrightText',
+      type: 'text',
+      localized: true,
+    },
+    {
       name: 'contactEmail',
       type: 'email',
     },

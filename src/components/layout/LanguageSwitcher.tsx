@@ -12,20 +12,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { usePathname, useRouter } from '@/i18n/navigation'
-import { useParams } from 'next/navigation'
 
 export function LanguageSwitcher() {
   const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
-  const params = useParams()
 
   function handleLocaleChange(newLocale: 'fr' | 'en') {
-    router.replace(
-      // @ts-expect-error -- TS doesn't love dynamic params in next-intl useRouter, but it works
-      { pathname, params },
-      { locale: newLocale }
-    )
+    router.replace(pathname, { locale: newLocale })
   }
 
   return (

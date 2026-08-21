@@ -79,6 +79,31 @@ export const Editions: CollectionConfig = {
       admin: { description: 'Official poster (call for papers)' },
     },
     {
+      name: 'submissionsEnabled',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Manually enables submissions until the configured deadline.',
+      },
+    },
+    {
+      name: 'submissionDeadline',
+      type: 'date',
+      admin: {
+        position: 'sidebar',
+        date: { pickerAppearance: 'dayAndTime' },
+        description: 'Submissions close automatically at this exact time.',
+        condition: (_, siblingData) => Boolean(siblingData?.submissionsEnabled),
+      },
+      validate: (value, { siblingData }) => {
+        if ((siblingData as { submissionsEnabled?: boolean })?.submissionsEnabled && !value) {
+          return 'A deadline is required while submissions are enabled.'
+        }
+        return true
+      },
+    },
+    {
       name: 'description',
       type: 'richText',
       localized: true,

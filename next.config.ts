@@ -10,6 +10,12 @@ const dirname = path.dirname(__filename)
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // Abstract PDFs can be several MB — server actions default to 1MB
+      bodySizeLimit: '5mb',
+    },
+  },
   images: {
     localPatterns: [
       {

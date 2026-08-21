@@ -27,11 +27,13 @@ export function RegistrationForm() {
     } else {
       setStatus('error')
       if (result.error === 'duplicate_email') {
-        setErrorMsg(locale === 'fr' ? 'Cet e-mail est déjà inscrit.' : 'This email is already registered.')
+        setErrorMsg(t('errors.duplicate_email'))
       } else if (result.error === 'no_live_edition') {
-        setErrorMsg(locale === 'fr' ? 'Les inscriptions ne sont pas ouvertes.' : 'Registrations are not open.')
+        setErrorMsg(t('errors.no_live_edition'))
+      } else if (result.error === 'missing_fields') {
+        setErrorMsg(t('errors.missing_fields'))
       } else {
-        setErrorMsg(locale === 'fr' ? 'Une erreur est survenue.' : 'An error occurred.')
+        setErrorMsg(t('errors.server_error'))
       }
     }
   }
@@ -40,7 +42,14 @@ export function RegistrationForm() {
     return (
       <Card className="max-w-xl mx-auto border-green-500/50 bg-green-50/50 dark:bg-green-950/20">
         <CardContent className="pt-6 text-center text-green-700 dark:text-green-400">
-          <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+          <svg
+            className="w-16 h-16 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
           <h2 className="text-2xl font-semibold mb-2">{t('success')}</h2>
         </CardContent>
       </Card>
@@ -65,7 +74,7 @@ export function RegistrationForm() {
               <Input id="lastName" name="lastName" required disabled={status === 'loading'} />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="email">{t('email')} *</Label>
             <Input id="email" name="email" type="email" required disabled={status === 'loading'} />
@@ -82,13 +91,11 @@ export function RegistrationForm() {
           </div>
 
           {status === 'error' && (
-            <div className="text-destructive text-sm font-medium">
-              {errorMsg}
-            </div>
+            <div className="text-destructive text-sm font-medium">{errorMsg}</div>
           )}
 
           <Button type="submit" className="w-full" disabled={status === 'loading'}>
-            {status === 'loading' ? '...' : t('submit')}
+            {status === 'loading' ? t('submitting') : t('submit')}
           </Button>
         </form>
       </CardContent>

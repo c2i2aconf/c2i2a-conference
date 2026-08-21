@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAdminOrReviewer, isAdminReviewerOrAuthor, isAuthenticated } from '../access'
+import { isAdmin, isAdminField, isAdminReviewerOrAuthor, isPortalUserOrAdmin } from '../access'
 
 /**
  * Private upload collection for paper submissions (PDF only).
@@ -13,9 +13,9 @@ export const SubmissionFiles: CollectionConfig = {
   },
   access: {
     read: isAdminReviewerOrAuthor,
-    create: isAuthenticated,
-    update: isAdminOrReviewer,
-    delete: isAdminOrReviewer,
+    create: isPortalUserOrAdmin,
+    update: isAdmin,
+    delete: isAdmin,
   },
   fields: [
     {
@@ -24,9 +24,22 @@ export const SubmissionFiles: CollectionConfig = {
       relationTo: 'users',
       required: true,
       defaultValue: ({ user }: { user?: { id: string } | null }) => user?.id,
+      access: { update: isAdminField },
     },
   ],
+  hooks: {
+    beforeValidate: [
+      ({ data, req, operation }) => {
+        if (operation === 'create' && req.user && req.user.role !== 'admin') {
+          return { ...data, author: req.user.id }
+        }
+        return data
+      },
+    ],
+  },
   upload: {
     mimeTypes: ['application/pdf'],
+    crop: false,
+    focalPoint: false,
   },
 }

@@ -34,7 +34,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: 'cross-env PAYLOAD_DB_PUSH=false npm run dev',
     reuseExistingServer: true,
     url: 'http://localhost:3000',
   },

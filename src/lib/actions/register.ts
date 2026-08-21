@@ -1,18 +1,22 @@
 'use server'
 
 import { getPayload } from 'payload'
+import { headers } from 'next/headers'
 import configPromise from '@payload-config'
+import { registrationEmail } from '@/emails/templates'
 import { getLiveEdition } from '../queries'
 
 export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
   try {
-    const firstName = formData.get('firstName') as string
-    const lastName = formData.get('lastName') as string
-    const email = formData.get('email') as string
-    const affiliation = formData.get('affiliation') as string
-    const country = formData.get('country') as string
+    const firstName = String(formData.get('firstName') || '').trim()
+    const lastName = String(formData.get('lastName') || '').trim()
+    const email = String(formData.get('email') || '')
+      .trim()
+      .toLowerCase()
+    const affiliation = String(formData.get('affiliation') || '').trim()
+    const country = String(formData.get('country') || '').trim()
 
-    if (!firstName || !lastName || !email) {
+    if (!firstName || !lastName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return { success: false, error: 'missing_fields' }
     }
 
@@ -27,40 +31,42 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
     const existing = await payload.find({
       collection: 'registrations',
       where: {
-        and: [
-          { email: { equals: email } },
-          { edition: { equals: edition.id } }
-        ]
+        and: [{ email: { equals: email } }, { edition: { equals: edition.id } }],
       },
-      limit: 1
+      limit: 1,
     })
 
     if (existing.totalDocs > 0) {
       return { success: false, error: 'duplicate_email' }
     }
 
-    // Create registration
+    const { user } = await payload.auth({ headers: await headers() })
+    const linkedUser = user && user.email.toLowerCase() === email ? user.id : undefined
+
     await payload.create({
       collection: 'registrations',
       data: {
         firstName,
         lastName,
         email,
+        locale,
+        user: linkedUser,
         affiliation,
         country,
         edition: edition.id,
         status: 'confirmed',
-      }
+      },
     })
 
     // Send confirmation email via Payload's configured adapter
     try {
       await payload.sendEmail({
         to: email,
-        subject: locale === 'fr' ? 'Confirmation d\'inscription - C2I2A' : 'Registration Confirmation - C2I2A',
-        html: locale === 'fr' 
-          ? `<p>Bonjour ${firstName},</p><p>Nous confirmons votre inscription au colloque C2I2A. Au plaisir de vous y retrouver !</p>`
-          : `<p>Hello ${firstName},</p><p>We confirm your registration for the C2I2A conference. See you soon!</p>`
+        subject:
+          locale === 'fr'
+            ? "Confirmation d'inscription - C2I2A"
+            : 'Registration Confirmation - C2I2A',
+        html: await registrationEmail(locale, firstName),
       })
     } catch (emailError) {
       // Don't fail the registration if email fails (often fails in dev without API key)

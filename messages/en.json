@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "C2I2A — International Conference on Artificial Intelligence and its Applications",
-    "description": "C2I2A is the international conference on artificial intelligence and its applications, organized by HEEC school, Marrakech."
+    "description": "C2I2A is an international conference on artificial intelligence and its applications."
   },
   "nav": {
     "home": "Home",
@@ -18,7 +18,9 @@
     "organizationCommittee": "Organization committee",
     "contact": "Contact",
     "archive": "Past editions",
-    "speakers": "Speakers"
+    "speakers": "Speakers",
+    "account": "My account",
+    "menu": "Menu"
   },
   "common": {
     "register": "Register",
@@ -33,18 +35,38 @@
     "minutes": "Minutes",
     "seconds": "Seconds",
     "free": "Free",
-    "language": "Language"
+    "language": "Language",
+    "scroll": "Scroll",
+    "close": "Close"
   },
   "home": {
-    "organizedBy": "Organized by HEEC school — Marrakech, Morocco",
+    "organizedBy": "Organized by {organization}",
     "countdownTitle": "The conference starts in",
     "aboutTitle": "About the conference",
+    "aboutCta": "Full description",
     "keyDatesTitle": "Key dates",
+    "keyDatesSubtitle": "The deadlines to remember for this edition",
     "speakersTitle": "Speakers",
-    "sponsorsTitle": "Our partners"
+    "speakersSubtitle": "The experts shaping this edition",
+    "keynotes": "Keynotes",
+    "sponsorsTitle": "Our partners",
+    "sponsorsSubtitle": "They make this edition possible",
+    "galleryTitle": "Gallery",
+    "gallerySubtitle": "Highlights from past editions",
+    "venueTitle": "The venue",
+    "venueSubtitle": "See you in Marrakech",
+    "venueCta": "Venue & access",
+    "stats": {
+      "speakers": "Speakers",
+      "sessions": "Sessions",
+      "attendees": "Attendees",
+      "days": "Days"
+    }
   },
   "program": {
     "title": "Program",
+    "subtitle": "The full conference schedule, room by room",
+    "empty": "The program will be published soon.",
     "filterByRoom": "Filter by room",
     "filterByType": "Filter by type",
     "allRooms": "All rooms",
@@ -60,10 +82,40 @@
   },
   "dates": {
     "title": "Important dates",
+    "subtitle": "Every conference deadline",
+    "empty": "No dates have been announced yet.",
     "open": "Open",
     "closed": "Closed",
     "extended": "Extended",
     "upcoming": "Upcoming"
+  },
+  "speakers": {
+    "title": "Speakers",
+    "subtitle": "Meet the experts and researchers speaking at this edition.",
+    "empty": "No speakers have been announced yet."
+  },
+  "sponsors": {
+    "title": "Partners",
+    "subtitle": "We warmly thank our partners for their support.",
+    "empty": "Partners will be announced soon.",
+    "tiers": {
+      "platinum": "Platinum",
+      "gold": "Gold",
+      "silver": "Silver",
+      "bronze": "Bronze",
+      "partner": "Partner"
+    }
+  },
+  "committees": {
+    "title": "Committees",
+    "subtitle": "The teams behind the conference",
+    "empty": "Committees will be announced soon."
+  },
+  "gallery": {
+    "title": "Photo gallery",
+    "subtitle": "The conference in pictures",
+    "empty": "No photos yet.",
+    "imageAlt": "Conference photo"
   },
   "registration": {
     "title": "Registration",
@@ -74,38 +126,102 @@
     "affiliation": "Affiliation",
     "country": "Country",
     "submit": "Confirm my registration",
-    "success": "Registration saved! Check your inbox."
+    "success": "Registration saved! Check your inbox.",
+    "submitting": "Sending…",
+    "errors": {
+      "duplicate_email": "This email is already registered.",
+      "no_live_edition": "Registrations are not open.",
+      "missing_fields": "Complete every required field.",
+      "server_error": "An error occurred."
+    }
   },
   "submission": {
     "title": "New submission",
     "subtitle": "Submit your abstract or paper",
+    "cfp": "The call for papers is open. Submit your abstract as a PDF; the scientific committee will notify you after review.",
     "paperTitle": "Paper title",
     "abstract": "Abstract",
     "file": "File (PDF)",
+    "fileHint": "PDF — 4 MB maximum",
     "submit": "Submit",
     "success": "Submission received! You will be notified after review.",
+    "signInTitle": "Sign-in required",
+    "signInText": "Sign in with a magic link to submit your abstract. No password needed.",
+    "signInCta": "Send me a magic link",
+    "deadline": "Submission deadline",
+    "closedTitle": "Submissions are closed",
+    "closedText": "Paper submission is not available for this edition.",
+    "errors": {
+      "unauthorized": "Sign in to submit a paper.",
+      "missing_fields": "Complete every required field.",
+      "invalid_file": "Select a valid PDF file no larger than 4 MB.",
+      "no_live_edition": "No active edition is available.",
+      "submissions_closed": "Submissions are closed.",
+      "server_error": "An error occurred. Please try again later."
+    },
     "status": {
       "pending": "Pending",
       "accepted": "Accepted",
       "rejected": "Rejected"
     }
   },
+  "about": {
+    "title": "Conference description",
+    "empty": "The description of this edition will be published soon.",
+    "poster": "Official poster"
+  },
+  "access": {
+    "title": "Venue & access",
+    "subtitle": "How to reach the conference",
+    "venue": "Venue",
+    "address": "Address",
+    "map": "Map",
+    "directions": "Open in Google Maps",
+    "unavailable": "Venue to be confirmed"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "A question about the conference? Write to us.",
+    "email": "Email",
+    "socials": "Social networks",
+    "organization": "Organization",
+    "socialsEmpty": "Links will be published soon."
+  },
   "archive": {
     "title": "Past editions",
     "subtitle": "The history of the C2I2A conference, year after year",
-    "viewEdition": "View edition"
+    "viewEdition": "View edition",
+    "empty": "No archive available.",
+    "editionLabel": "Archive {year}"
   },
   "auth": {
     "login": "Sign in",
     "logout": "Sign out",
+    "email": "Email",
+    "loginTitle": "Author area",
+    "loginSubtitle": "Enter your email and we'll send you a magic sign-in link. No password.",
     "magicLinkSent": "Magic link sent! Check your inbox.",
+    "devLink": "Development mode — click this link:",
     "emailPlaceholder": "you@email.com",
-    "sendMagicLink": "Send me a magic link"
+    "sendMagicLink": "Send me a magic link",
+    "invalidLink": "This link is invalid or has expired. Please request a new one.",
+    "accountTitle": "My account",
+    "profile": "Profile",
+    "myRegistrations": "My registrations",
+    "mySubmissions": "My submissions",
+    "noRegistrations": "No registration linked to this email.",
+    "noSubmissions": "No submissions yet.",
+    "newSubmission": "New submission",
+    "signedInAs": "Signed in as"
   },
   "footer": {
     "contact": "Contact",
     "followUs": "Follow us",
+    "quickLinks": "Quick links",
     "rights": "All rights reserved",
     "organizedBy": "Organized by"
+  },
+  "customPage": {
+    "empty": "This content will be published soon."
   }
 }

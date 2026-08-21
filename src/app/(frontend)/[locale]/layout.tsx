@@ -7,6 +7,9 @@ import { ThemeProvider } from 'next-themes'
 import React from 'react'
 
 import { routing } from '@/i18n/routing'
+import { getServerURL } from '@/lib/server-url'
+import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
 
 import '../globals.css'
 
@@ -34,13 +37,14 @@ export async function generateMetadata({
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'metadata' })
   return {
-    title: t('title'),
+    metadataBase: new URL(getServerURL()),
+    title: { default: t('title'), template: `%s | C2I2A` },
     description: t('description'),
+    alternates: {
+      languages: { fr: '/fr', en: '/en' },
+    },
   }
 }
-
-import { Header } from '@/components/layout/Header'
-import { Footer } from '@/components/layout/Footer'
 
 export default async function LocaleLayout({
   children,

@@ -1,18 +1,26 @@
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getLiveEdition, getPageBySlug } from '@/lib/queries'
 import { notFound } from 'next/navigation'
 import { RichText } from '@payloadcms/richtext-lexical/react'
+import type { Metadata } from 'next'
+import { PageHero } from '@/components/sections/PageHero'
 
-export default async function CustomPage({
-  params,
-}: {
-  params: Promise<{ locale: 'fr' | 'en'; slug: string }>
-}) {
+type Props = { params: Promise<{ locale: 'fr' | 'en'; slug: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, slug } = await params
+  const edition = await getLiveEdition(locale)
+  const page = edition ? await getPageBySlug(slug, edition.id, locale) : null
+  return { title: page?.title || slug, alternates: { canonical: `/${locale}/p/${slug}` } }
+}
+
+export default async function CustomPage({ params }: Props) {
   const { locale, slug } = await params
   setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'customPage' })
 
   const edition = await getLiveEdition(locale)
-  
+
   if (!edition) {
     notFound()
   }
@@ -24,16 +32,17 @@ export default async function CustomPage({
   }
 
   return (
-    <div className="container py-12 md:py-24 max-w-4xl mx-auto">
-      <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-8">{page.title}</h1>
-      
-      {page.content ? (
-        <div className="prose prose-lg dark:prose-invert max-w-none">
-          <RichText data={page.content} />
-        </div>
-      ) : (
-        <p className="text-muted-foreground">Ce contenu est vide.</p>
-      )}
-    </div>
+    <>
+      <PageHero eyebrow={`C2I2A ${edition.year}`} title={page.title} />
+      <div className="container mx-auto max-w-4xl py-12 md:py-24">
+        {page.content ? (
+          <div className="rich-text">
+            <RichText data={page.content} />
+          </div>
+        ) : (
+          <p className="text-muted-foreground">{t('empty')}</p>
+        )}
+      </div>
+    </>
   )
 }

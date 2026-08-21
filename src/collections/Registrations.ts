@@ -47,6 +47,17 @@ export const Registrations: CollectionConfig = {
       required: true,
     },
     {
+      name: 'locale',
+      type: 'select',
+      required: true,
+      defaultValue: 'fr',
+      options: [
+        { label: 'Français', value: 'fr' },
+        { label: 'English', value: 'en' },
+      ],
+      admin: { position: 'sidebar', readOnly: true },
+    },
+    {
       type: 'row',
       fields: [
         { name: 'affiliation', type: 'text' },
@@ -74,4 +85,17 @@ export const Registrations: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    beforeValidate: [
+      ({ data, req, operation }) => {
+        if (operation !== 'create' || !data) return data
+        const email = typeof data.email === 'string' ? data.email.trim().toLowerCase() : data.email
+        if (req.user?.role === 'admin') return { ...data, email }
+        const currentUser = req.user
+        const user =
+          currentUser && currentUser.email.toLowerCase() === email ? currentUser.id : undefined
+        return { ...data, email, user, status: 'confirmed', checkedIn: false }
+      },
+    ],
+  },
 }

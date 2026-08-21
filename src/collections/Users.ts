@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAdmin, isAdminField } from '../access'
+import { canAccessAdmin, isAdmin, isAdminField, isAdminOrOwnUser } from '../access'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -10,8 +10,11 @@ export const Users: CollectionConfig = {
   },
   auth: true,
   access: {
+    admin: canAccessAdmin,
     // First user can be created via /admin/create-first-user; afterwards only admins create users
     create: isAdmin,
+    read: isAdminOrOwnUser,
+    update: isAdminOrOwnUser,
     delete: isAdmin,
   },
   fields: [
@@ -37,6 +40,7 @@ export const Users: CollectionConfig = {
       ],
       access: {
         // Only admins can change roles
+        create: isAdminField,
         update: isAdminField,
       },
     },

@@ -70,6 +70,7 @@ export interface Config {
     registrations: Registration;
     submissions: Submission;
     'submission-files': SubmissionFile;
+    'magic-links': MagicLink;
     sessions: Session;
     speakers: Speaker;
     rooms: Room;
@@ -91,6 +92,7 @@ export interface Config {
     registrations: RegistrationsSelect<false> | RegistrationsSelect<true>;
     submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
     'submission-files': SubmissionFilesSelect<false> | SubmissionFilesSelect<true>;
+    'magic-links': MagicLinksSelect<false> | MagicLinksSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
     speakers: SpeakersSelect<false> | SpeakersSelect<true>;
     rooms: RoomsSelect<false> | RoomsSelect<true>;
@@ -159,6 +161,7 @@ export interface Registration {
   firstName: string;
   lastName: string;
   email: string;
+  locale: 'fr' | 'en';
   affiliation?: string | null;
   country?: string | null;
   status: 'confirmed' | 'cancelled';
@@ -197,6 +200,14 @@ export interface Edition {
    * Official poster (call for papers)
    */
   posterImage?: (number | null) | Media;
+  /**
+   * Manually enables submissions until the configured deadline.
+   */
+  submissionsEnabled?: boolean | null;
+  /**
+   * Submissions close automatically at this exact time.
+   */
+  submissionDeadline?: string | null;
   description?: {
     root: {
       type: string;
@@ -225,6 +236,7 @@ export interface Media {
   id: number;
   alt: string;
   caption?: string | null;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -304,6 +316,7 @@ export interface Submission {
   title: string;
   abstract: string;
   file: number | SubmissionFile;
+  locale: 'fr' | 'en';
   status: 'pending' | 'accepted' | 'rejected';
   reviewNotes?: string | null;
   updatedAt: string;
@@ -316,6 +329,7 @@ export interface Submission {
 export interface SubmissionFile {
   id: number;
   author: number | User;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -325,8 +339,30 @@ export interface SubmissionFile {
   filesize?: number | null;
   width?: number | null;
   height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "magic-links".
+ */
+export interface MagicLink {
+  id: number;
+  email: string;
+  /**
+   * SHA-256 of the emailed token — never the raw token
+   */
+  tokenHash: string;
+  /**
+   * One-way hash used only for abuse throttling.
+   */
+  requestIpHash: string;
+  locale: 'fr' | 'en';
+  expiresAt: string;
+  /**
+   * Set once the link has been used (single-use tokens)
+   */
+  consumedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -526,6 +562,10 @@ export interface PayloadLockedDocument {
         value: number | SubmissionFile;
       } | null)
     | ({
+        relationTo: 'magic-links';
+        value: number | MagicLink;
+      } | null)
+    | ({
         relationTo: 'sessions';
         value: number | Session;
       } | null)
@@ -621,6 +661,7 @@ export interface RegistrationsSelect<T extends boolean = true> {
   firstName?: T;
   lastName?: T;
   email?: T;
+  locale?: T;
   affiliation?: T;
   country?: T;
   status?: T;
@@ -638,6 +679,7 @@ export interface SubmissionsSelect<T extends boolean = true> {
   title?: T;
   abstract?: T;
   file?: T;
+  locale?: T;
   status?: T;
   reviewNotes?: T;
   updatedAt?: T;
@@ -649,6 +691,7 @@ export interface SubmissionsSelect<T extends boolean = true> {
  */
 export interface SubmissionFilesSelect<T extends boolean = true> {
   author?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -658,8 +701,20 @@ export interface SubmissionFilesSelect<T extends boolean = true> {
   filesize?: T;
   width?: T;
   height?: T;
-  focalX?: T;
-  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "magic-links_select".
+ */
+export interface MagicLinksSelect<T extends boolean = true> {
+  email?: T;
+  tokenHash?: T;
+  requestIpHash?: T;
+  locale?: T;
+  expiresAt?: T;
+  consumedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -720,6 +775,8 @@ export interface EditionsSelect<T extends boolean = true> {
   venueMapUrl?: T;
   bannerImage?: T;
   posterImage?: T;
+  submissionsEnabled?: T;
+  submissionDeadline?: T;
   description?: T;
   editionStatus?: T;
   updatedAt?: T;
@@ -834,6 +891,7 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -928,6 +986,9 @@ export interface SiteSetting {
   id: number;
   siteName: string;
   siteTagline?: string | null;
+  organizationName: string;
+  organizationAddress?: string | null;
+  copyrightText?: string | null;
   contactEmail?: string | null;
   logo?: (number | null) | Media;
   socials?:
@@ -947,6 +1008,9 @@ export interface SiteSetting {
 export interface SiteSettingsSelect<T extends boolean = true> {
   siteName?: T;
   siteTagline?: T;
+  organizationName?: T;
+  organizationAddress?: T;
+  copyrightText?: T;
   contactEmail?: T;
   logo?: T;
   socials?:

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "C2I2A — Colloque International sur l'Intelligence Artificielle et ses Applications",
-    "description": "C2I2A est le colloque international sur l'intelligence artificielle et ses applications, organisé par l'école HEEC Marrakech."
+    "description": "C2I2A est un colloque international sur l'intelligence artificielle et ses applications."
   },
   "nav": {
     "home": "Accueil",
@@ -18,7 +18,9 @@
     "organizationCommittee": "Comité d'organisation",
     "contact": "Contacts",
     "archive": "Éditions précédentes",
-    "speakers": "Intervenants"
+    "speakers": "Intervenants",
+    "account": "Mon compte",
+    "menu": "Menu"
   },
   "common": {
     "register": "S'inscrire",
@@ -33,18 +35,38 @@
     "minutes": "Minutes",
     "seconds": "Secondes",
     "free": "Gratuit",
-    "language": "Langue"
+    "language": "Langue",
+    "scroll": "Défiler",
+    "close": "Fermer"
   },
   "home": {
-    "organizedBy": "Organisé par l'école HEEC — Marrakech, Maroc",
+    "organizedBy": "Organisé par {organization}",
     "countdownTitle": "Le colloque commence dans",
     "aboutTitle": "À propos du colloque",
+    "aboutCta": "Descriptif complet",
     "keyDatesTitle": "Dates clés",
+    "keyDatesSubtitle": "Les échéances à retenir pour cette édition",
     "speakersTitle": "Intervenants",
-    "sponsorsTitle": "Nos partenaires"
+    "speakersSubtitle": "Les experts qui marqueront cette édition",
+    "keynotes": "Conférences plénières",
+    "sponsorsTitle": "Nos partenaires",
+    "sponsorsSubtitle": "Ils rendent cette édition possible",
+    "galleryTitle": "Galerie",
+    "gallerySubtitle": "Les temps forts des éditions précédentes",
+    "venueTitle": "Le lieu",
+    "venueSubtitle": "Rendez-vous à Marrakech",
+    "venueCta": "Plan d'accès",
+    "stats": {
+      "speakers": "Intervenants",
+      "sessions": "Sessions",
+      "attendees": "Participants",
+      "days": "Jours"
+    }
   },
   "program": {
     "title": "Programme",
+    "subtitle": "Le déroulé complet du colloque, salle par salle",
+    "empty": "Le programme sera publié prochainement.",
     "filterByRoom": "Filtrer par salle",
     "filterByType": "Filtrer par type",
     "allRooms": "Toutes les salles",
@@ -60,10 +82,40 @@
   },
   "dates": {
     "title": "Dates importantes",
+    "subtitle": "Toutes les échéances du colloque",
+    "empty": "Aucune date n'a été annoncée pour le moment.",
     "open": "Ouvert",
     "closed": "Clôturé",
     "extended": "Prolongé",
     "upcoming": "À venir"
+  },
+  "speakers": {
+    "title": "Intervenants",
+    "subtitle": "Découvrez les experts et chercheurs qui interviendront lors de cette édition.",
+    "empty": "Aucun intervenant n'a été annoncé pour le moment."
+  },
+  "sponsors": {
+    "title": "Partenaires",
+    "subtitle": "Nous remercions chaleureusement nos partenaires pour leur soutien.",
+    "empty": "Les partenaires seront annoncés prochainement.",
+    "tiers": {
+      "platinum": "Platine",
+      "gold": "Or",
+      "silver": "Argent",
+      "bronze": "Bronze",
+      "partner": "Partenaire"
+    }
+  },
+  "committees": {
+    "title": "Comités",
+    "subtitle": "Les équipes derrière le colloque",
+    "empty": "Les comités seront annoncés prochainement."
+  },
+  "gallery": {
+    "title": "Galerie photo",
+    "subtitle": "Les moments du colloque en images",
+    "empty": "Aucune photo pour le moment.",
+    "imageAlt": "Photo du colloque"
   },
   "registration": {
     "title": "Inscription",
@@ -74,38 +126,102 @@
     "affiliation": "Affiliation",
     "country": "Pays",
     "submit": "Valider mon inscription",
-    "success": "Inscription enregistrée ! Vérifiez votre boîte mail."
+    "success": "Inscription enregistrée ! Vérifiez votre boîte mail.",
+    "submitting": "Envoi…",
+    "errors": {
+      "duplicate_email": "Cet e-mail est déjà inscrit.",
+      "no_live_edition": "Les inscriptions ne sont pas ouvertes.",
+      "missing_fields": "Complétez tous les champs obligatoires.",
+      "server_error": "Une erreur est survenue."
+    }
   },
   "submission": {
     "title": "Nouvelle soumission",
     "subtitle": "Déposez votre résumé ou article",
+    "cfp": "L'appel à communications est ouvert. Déposez votre résumé au format PDF ; le comité scientifique vous notifiera après relecture.",
     "paperTitle": "Titre de la communication",
     "abstract": "Résumé",
     "file": "Fichier (PDF)",
+    "fileHint": "PDF — 4 Mo maximum",
     "submit": "Déposer",
     "success": "Soumission reçue ! Vous serez notifié après relecture.",
+    "signInTitle": "Connexion requise",
+    "signInText": "Connectez-vous avec un lien magique pour déposer votre résumé. Aucun mot de passe nécessaire.",
+    "signInCta": "Recevoir un lien magique",
+    "deadline": "Date limite de soumission",
+    "closedTitle": "Les soumissions sont fermées",
+    "closedText": "Le dépôt de communications n’est pas disponible pour cette édition.",
+    "errors": {
+      "unauthorized": "Connectez-vous pour soumettre une communication.",
+      "missing_fields": "Complétez tous les champs obligatoires.",
+      "invalid_file": "Sélectionnez un fichier PDF valide de 4 Mo maximum.",
+      "no_live_edition": "Aucune édition active n’est disponible.",
+      "submissions_closed": "Les soumissions sont fermées.",
+      "server_error": "Une erreur est survenue. Réessayez plus tard."
+    },
     "status": {
       "pending": "En attente",
       "accepted": "Accepté",
       "rejected": "Refusé"
     }
   },
+  "about": {
+    "title": "Descriptif du colloque",
+    "empty": "Le descriptif de cette édition sera publié prochainement.",
+    "poster": "Affiche officielle"
+  },
+  "access": {
+    "title": "Plan d'accès",
+    "subtitle": "Comment rejoindre le colloque",
+    "venue": "Lieu",
+    "address": "Adresse",
+    "map": "Carte",
+    "directions": "Ouvrir dans Google Maps",
+    "unavailable": "Lieu à confirmer"
+  },
+  "contact": {
+    "title": "Contacts",
+    "subtitle": "Une question sur le colloque ? Écrivez-nous.",
+    "email": "E-mail",
+    "socials": "Réseaux sociaux",
+    "organization": "Organisation",
+    "socialsEmpty": "Les liens seront publiés prochainement."
+  },
   "archive": {
     "title": "Éditions précédentes",
     "subtitle": "L'historique du colloque C2I2A, année après année",
-    "viewEdition": "Voir l'édition"
+    "viewEdition": "Voir l'édition",
+    "empty": "Aucune archive disponible.",
+    "editionLabel": "Archive {year}"
   },
   "auth": {
     "login": "Connexion",
     "logout": "Déconnexion",
+    "email": "E-mail",
+    "loginTitle": "Espace auteur",
+    "loginSubtitle": "Saisissez votre e-mail : nous vous envoyons un lien magique de connexion. Aucun mot de passe.",
     "magicLinkSent": "Lien magique envoyé ! Vérifiez votre boîte mail.",
+    "devLink": "Mode développement — cliquez sur ce lien :",
     "emailPlaceholder": "votre@email.com",
-    "sendMagicLink": "Recevoir un lien magique"
+    "sendMagicLink": "Recevoir un lien magique",
+    "invalidLink": "Ce lien est invalide ou a expiré. Demandez-en un nouveau.",
+    "accountTitle": "Mon compte",
+    "profile": "Profil",
+    "myRegistrations": "Mes inscriptions",
+    "mySubmissions": "Mes soumissions",
+    "noRegistrations": "Aucune inscription liée à cet e-mail.",
+    "noSubmissions": "Aucune soumission pour le moment.",
+    "newSubmission": "Nouvelle soumission",
+    "signedInAs": "Connecté en tant que"
   },
   "footer": {
     "contact": "Contact",
     "followUs": "Suivez-nous",
+    "quickLinks": "Liens rapides",
     "rights": "Tous droits réservés",
     "organizedBy": "Organisé par"
+  },
+  "customPage": {
+    "empty": "Ce contenu sera publié prochainement."
   }
 }

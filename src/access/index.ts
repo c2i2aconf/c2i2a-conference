@@ -6,6 +6,10 @@ export const anyone: Access = () => true
 /** Any logged-in user */
 export const isAuthenticated: Access = ({ req: { user } }) => Boolean(user)
 
+/** Portal workflows accept authors/attendees; admins may act on their behalf. */
+export const isPortalUserOrAdmin: Access = ({ req: { user } }) =>
+  user?.role === 'author' || user?.role === 'attendee' || user?.role === 'admin'
+
 export const isAdmin: Access = ({ req: { user } }) => user?.role === 'admin'
 
 export const isAdminOrEditor: Access = ({ req: { user } }) =>
@@ -13,6 +17,17 @@ export const isAdminOrEditor: Access = ({ req: { user } }) =>
 
 export const isAdminOrReviewer: Access = ({ req: { user } }) =>
   user?.role === 'admin' || user?.role === 'reviewer'
+
+/** Roles permitted to enter the Payload admin panel. */
+export const canAccessAdmin = ({ req: { user } }: Parameters<Access>[0]) =>
+  user?.role === 'admin' || user?.role === 'editor' || user?.role === 'reviewer'
+
+/** Admins see every user; signed-in users may read/update their own account. */
+export const isAdminOrOwnUser: Access = ({ req: { user } }) => {
+  if (!user) return false
+  if (user.role === 'admin') return true
+  return { id: { equals: user.id } }
+}
 
 /** Admins/reviewers see everything; authors see only their own docs (field `author`) */
 export const isAdminReviewerOrAuthor: Access = ({ req: { user } }) => {

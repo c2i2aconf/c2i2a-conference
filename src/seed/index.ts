@@ -17,6 +17,36 @@ const seed = async () => {
 
   payload.logger.info('🌱 Seeding C2I2A…')
 
+  const settingsFr = await payload.findGlobal({ slug: 'site-settings', locale: 'fr' })
+  await payload.updateGlobal({
+    slug: 'site-settings',
+    locale: 'fr',
+    data: {
+      siteName: settingsFr.siteName || 'C2I2A',
+      siteTagline:
+        settingsFr.siteTagline ||
+        "Colloque International sur l'Intelligence Artificielle et ses Applications",
+      organizationName: settingsFr.organizationName || 'HEEC Marrakech',
+      organizationAddress: settingsFr.organizationAddress || 'Marrakech, Maroc',
+      copyrightText: settingsFr.copyrightText || 'C2I2A — HEEC Marrakech',
+    },
+  })
+  const settingsEn = await payload.findGlobal({ slug: 'site-settings', locale: 'en' })
+  await payload.updateGlobal({
+    slug: 'site-settings',
+    locale: 'en',
+    data: {
+      siteName: settingsEn.siteName || 'C2I2A',
+      siteTagline:
+        settingsEn.siteTagline ||
+        'International Conference on Artificial Intelligence and its Applications',
+      organizationName: settingsEn.organizationName || 'HEEC Marrakech',
+      organizationAddress: settingsEn.organizationAddress || 'Marrakech, Morocco',
+      copyrightText: settingsEn.copyrightText || 'C2I2A — HEEC Marrakech',
+    },
+  })
+  payload.logger.info('  ✓ Site settings')
+
   // ── Editions ────────────────────────────────────────────────────
   const existing2024 = await payload.find({
     collection: 'editions',
@@ -56,7 +86,8 @@ const seed = async () => {
     payload.logger.info('  ⏭ Edition 2024 already exists, skipping')
   }
 
-  const currentYear = new Date().getFullYear()
+  const now = new Date()
+  const currentYear = now.getMonth() >= 5 ? now.getFullYear() + 1 : now.getFullYear()
   const existingCurrent = await payload.find({
     collection: 'editions',
     where: { year: { equals: currentYear } },
@@ -71,10 +102,12 @@ const seed = async () => {
       data: {
         year: currentYear,
         title: `C2I2A ${currentYear}`,
-        theme: "Intelligence artificielle et ses applications",
+        theme: 'Intelligence artificielle et ses applications',
         startDate: `${currentYear}-06-01`,
         endDate: `${currentYear}-06-01`,
         venue: 'HEEC, Marrakech',
+        submissionsEnabled: true,
+        submissionDeadline: `${currentYear}-04-30T22:59:59.000Z`,
         editionStatus: 'live',
       },
     })
@@ -163,7 +196,10 @@ const seed = async () => {
         end: '10:30',
         type: 'keynote',
         room: rooms['Amphi Ibn Batouta'],
-        title: { fr: 'Session plénière sur l’hydrogène vert', en: 'Plenary session on green hydrogen' },
+        title: {
+          fr: 'Session plénière sur l’hydrogène vert',
+          en: 'Plenary session on green hydrogen',
+        },
         speakerNames: ['Mr Adamo Screnci'],
       },
       {
@@ -268,7 +304,9 @@ const seed = async () => {
         })
       }
     }
-    payload.logger.info(`  ✓ 2024 program: ${sessions.length} sessions, ${speakerNames.length} speakers`)
+    payload.logger.info(
+      `  ✓ 2024 program: ${sessions.length} sessions, ${speakerNames.length} speakers`,
+    )
 
     // ── 2024 important dates ────────────────────────────────────────
     const dates = [

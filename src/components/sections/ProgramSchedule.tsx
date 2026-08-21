@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { Session } from '@/payload-types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -23,8 +23,8 @@ function getBadgeColor(type: Session['type']) {
 }
 
 export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
-  const t = useTranslations('program') // Note: useTranslations without await in client component
-  // Actually useTranslations is synchronous in client component, so just `const t = useTranslations('program')`
+  const t = useTranslations('program')
+  const locale = useLocale()
 
   // Group by date
   const groupedByDate = React.useMemo(() => {
@@ -63,7 +63,7 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
   if (!sessions || sessions.length === 0) {
     return (
       <div className="py-12 text-center text-muted-foreground">
-        Programme non disponible pour le moment.
+        {t('empty')}
       </div>
     )
   }
@@ -79,7 +79,7 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
             onClick={() => setActiveDate(date)}
             className="rounded-full"
           >
-            {new Date(date).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
+            {new Date(date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
           </Button>
         ))}
       </div>

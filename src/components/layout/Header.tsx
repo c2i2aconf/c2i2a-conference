@@ -1,55 +1,76 @@
 import * as React from 'react'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
+import Image from 'next/image'
 
 import { Link } from '@/i18n/navigation'
+import { getLiveEdition, getNavigationPages, getSiteSettings } from '@/lib/queries'
 import { NavLink } from './NavLink'
+import { MobileMenu } from './MobileMenu'
+import { HeaderShell } from './HeaderShell'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { ThemeToggle } from './ThemeToggle'
 import { Button } from '@/components/ui/button'
-import { Menu } from 'lucide-react'
 
-// Note: You can also extract MobileMenu to a client component if needed
 export async function Header() {
   const t = await getTranslations('nav')
+  const locale = (await getLocale()) as 'fr' | 'en'
+  const [settings, edition] = await Promise.all([getSiteSettings(locale), getLiveEdition(locale)])
+  const customPages = edition ? await getNavigationPages(edition.id, locale) : []
+  const logo =
+    settings?.logo && typeof settings.logo === 'object' && settings.logo.url ? settings.logo : null
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="inline-block font-bold text-primary">C2I2A</span>
+    <HeaderShell>
+      <div className="container flex h-16 items-center justify-between gap-4">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-2.5">
+            {logo?.url ? (
+              <Image
+                src={logo.url}
+                alt={settings?.siteName || 'C2I2A'}
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
+              />
+            ) : (
+              <span className="font-display text-xl font-bold tracking-tight text-primary">
+                {settings?.siteName || 'C2I2A'}
+              </span>
+            )}
           </Link>
-          <nav className="hidden md:flex gap-6">
-            <NavLink href="/" exact>{t('home')}</NavLink>
+          <nav className="hidden items-center gap-6 lg:flex">
+            <NavLink href="/" exact>
+              {t('home')}
+            </NavLink>
+            <NavLink href="/about">{t('about')}</NavLink>
+            {customPages.map((page) => (
+              <NavLink key={page.id} href={`/p/${page.slug}`}>
+                {page.title}
+              </NavLink>
+            ))}
             <NavLink href="/program">{t('program')}</NavLink>
             <NavLink href="/dates">{t('dates')}</NavLink>
             <NavLink href="/speakers">{t('speakers')}</NavLink>
-            
-            {/* Optional: we can add dropdowns for Committees etc. For now, simple links */}
             <NavLink href="/committees">{t('committees')}</NavLink>
-            <NavLink href="/sponsors">{t('sponsors')}</NavLink>
-            <NavLink href="/gallery">{t('gallery')}</NavLink>
             <NavLink href="/archive">{t('archive')}</NavLink>
           </nav>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center gap-2">
-            <Button asChild variant="default">
-              <Link href="/registration">{t('registration')}</Link>
-            </Button>
-          </div>
-          
+          <Button
+            asChild
+            className="hidden bg-accent text-accent-foreground shadow-sm hover:bg-accent/90 md:inline-flex"
+          >
+            <Link href="/registration">{t('registration')}</Link>
+          </Button>
           <ThemeToggle />
           <LanguageSwitcher />
-
-          {/* Mobile menu trigger */}
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
-          </Button>
+          <MobileMenu
+            siteName={settings?.siteName || 'C2I2A'}
+            customPages={customPages.map((page) => ({ slug: page.slug, title: page.title }))}
+          />
         </div>
       </div>
-    </header>
+    </HeaderShell>
   )
 }

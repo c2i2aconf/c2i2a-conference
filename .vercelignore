@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+.agents/
+.git/
+.github/
+.next/
+.vercel/
+.vercel-cli/
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+coverage/
+tests/
+*.tsbuildinfo
