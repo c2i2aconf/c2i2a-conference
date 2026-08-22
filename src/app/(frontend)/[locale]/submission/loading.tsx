@@ -1,6 +1,10 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-/** Shell shown while per-request pages (submission, account, auth) resolve. */
+/**
+ * Shell for the submission flow (auth + edition + deadline lookups).
+ * Kept out of the [locale] segment: /account redirects during render, and a
+ * loading boundary there streams the shell first, swallowing the redirect.
+ */
 export default function Loading() {
   return (
     <div className="container flex min-h-[50vh] flex-col items-center justify-center gap-6 py-24">

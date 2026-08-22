@@ -1,4 +1,6 @@
-import { revalidatePath } from 'next/cache'
+// 'next/cache.js' (not 'next/cache'): the next package has no exports map,
+// so raw ESM consumers (tsx seeds/tests) can't resolve the extensionless path
+import { revalidatePath } from 'next/cache.js'
 import type {
   CollectionAfterChangeHook,
   CollectionAfterDeleteHook,

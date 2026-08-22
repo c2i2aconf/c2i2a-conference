@@ -7,6 +7,9 @@ test.describe('Admin Panel', () => {
   let page: Page
 
   test.beforeAll(async ({ browser }) => {
+    // describe.configure timeouts don't apply to hooks — the Payload cold
+    // boot in seedTestUser needs the same headroom vitest gets (120s)
+    test.setTimeout(120_000)
     await seedTestUser()
 
     const context = await browser.newContext()
