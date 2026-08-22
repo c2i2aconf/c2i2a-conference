@@ -1,7 +1,7 @@
 {
   "name": "c2i2a",
   "version": "1.0.0",
-  "description": "A blank template to get started with Payload 3.0",
+  "description": "C2I2A conference website — Next.js + Payload CMS (bilingual fr/en, multi-edition)",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -28,7 +28,6 @@
     "@payloadcms/next": "3.88.0",
     "@payloadcms/plugin-cloud-storage": "^3.88.0",
     "@payloadcms/richtext-lexical": "3.88.0",
-    "@payloadcms/storage-vercel-blob": "^3.88.0",
     "@payloadcms/ui": "3.88.0",
     "@react-email/components": "^1.0.12",
     "@tailwindcss/postcss": "^4.3.3",
@@ -70,8 +69,7 @@
     "vitest": "4.0.18"
   },
   "engines": {
-    "node": "^18.20.2 || >=20.9.0",
-    "pnpm": "^9 || ^10 || ^11"
+    "node": ">=20.9.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
