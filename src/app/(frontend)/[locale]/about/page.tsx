@@ -5,6 +5,7 @@ import { CalendarDays, MapPin } from 'lucide-react'
 import type { Metadata } from 'next'
 
 import { getLiveEdition } from '@/lib/queries'
+import { formatDate } from '@/lib/dates'
 import { PageHero } from '@/components/sections/PageHero'
 import { Reveal } from '@/components/motion/Reveal'
 
@@ -46,13 +47,13 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
               <div className="mt-10 flex flex-wrap gap-3 text-sm text-muted-foreground">
                 <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-1.5">
                   <CalendarDays className="h-4 w-4 text-primary" />
-                  {new Date(edition.startDate).toLocaleDateString(locale, {
+                  {formatDate(edition.startDate, locale, {
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric',
                   })}
                   {edition.endDate !== edition.startDate &&
-                    ` – ${new Date(edition.endDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                    ` – ${formatDate(edition.endDate, locale, { day: 'numeric', month: 'long', year: 'numeric' })}`}
                 </span>
                 {edition.venue && (
                   <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-1.5">

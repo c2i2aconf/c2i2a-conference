@@ -37,7 +37,9 @@
     "free": "Free",
     "language": "Language",
     "scroll": "Scroll",
-    "close": "Close"
+    "close": "Close",
+    "toggleTheme": "Toggle theme",
+    "toggleLanguage": "Toggle language"
   },
   "home": {
     "organizedBy": "Organized by {organization}",
@@ -92,7 +94,8 @@
   "speakers": {
     "title": "Speakers",
     "subtitle": "Meet the experts and researchers speaking at this edition.",
-    "empty": "No speakers have been announced yet."
+    "empty": "No speakers have been announced yet.",
+    "keynote": "Keynote speaker"
   },
   "sponsors": {
     "title": "Partners",

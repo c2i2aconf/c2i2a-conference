@@ -49,6 +49,8 @@ export async function getLiveEdition(locale: 'fr' | 'en'): Promise<Edition | nul
           equals: 'live',
         },
       },
+      // Deterministic pick if several editions are ever live at once
+      sort: '-startDate',
       limit: 1,
     })
     return docs[0] || null
@@ -203,7 +205,7 @@ export async function getCommittees(editionId: number, locale: 'fr' | 'en'): Pro
           equals: editionId,
         },
       },
-      limit: 10,
+      limit: 100,
     })
     return docs
   } catch (error) {
@@ -247,7 +249,9 @@ export async function getEditionStats(
     const [speakers, sessions, attendees] = await Promise.all([
       payload.find({ collection: 'speakers', where, limit: 0 }),
       payload.find({ collection: 'sessions', where, limit: 0 }),
-      payload.find({ collection: 'registrations', where, limit: 0 }),
+      // Registrations are admin/self-readable; the public stats band only
+      // needs the aggregate count, never doc data
+      payload.find({ collection: 'registrations', where, limit: 0, overrideAccess: true }),
     ])
     return {
       speakers: speakers.totalDocs,

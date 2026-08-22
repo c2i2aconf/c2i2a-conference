@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MapPin, Clock } from 'lucide-react'
+import { formatDate } from '@/lib/dates'
 
 interface ProgramScheduleProps {
   sessions: Session[]
@@ -19,6 +20,16 @@ function getBadgeColor(type: Session['type']) {
     case 'break': return 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600'
     case 'session': return 'bg-secondary text-secondary-foreground'
     default: return ''
+  }
+}
+
+function getBorderColor(type: Session['type']) {
+  switch (type) {
+    case 'keynote': return 'border-l-primary'
+    case 'ceremony': return 'border-l-accent'
+    case 'break': return 'border-l-amber-500'
+    case 'session': return 'border-l-secondary'
+    default: return 'border-l-muted'
   }
 }
 
@@ -79,7 +90,7 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
             onClick={() => setActiveDate(date)}
             className="rounded-full"
           >
-            {new Date(date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
+            {formatDate(date, locale, { weekday: 'long', day: 'numeric', month: 'long' })}
           </Button>
         ))}
       </div>
@@ -100,7 +111,7 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
                 const isFullWidth = session.type === 'keynote' || session.type === 'break' || session.type === 'ceremony'
                 
                 return (
-                  <Card key={session.id} className={`${isFullWidth ? 'lg:col-span-2' : ''} border-l-4 ${getBadgeColor(session.type) ? '' : 'border-l-primary'}`} style={isFullWidth && session.type === 'break' ? { borderLeftColor: '#f59e0b' } : {}}>
+                  <Card key={session.id} className={`${isFullWidth ? 'lg:col-span-2' : ''} border-l-4 ${getBorderColor(session.type)}`}>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start gap-4 mb-2">
                         <Badge className={getBadgeColor(session.type)} variant="outline">
@@ -114,7 +125,7 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
                         )}
                       </div>
                       <CardTitle className="text-xl">
-                        {session.title || (session.speakers && session.speakers.length > 0 && typeof session.speakers[0] === 'object' ? session.speakers[0].name : 'Session')}
+                        {session.title || (session.speakers && session.speakers.length > 0 && typeof session.speakers[0] === 'object' ? session.speakers[0].name : t('types.session'))}
                       </CardTitle>
                     </CardHeader>
                     {((session.speakers && session.speakers.length > 0) || session.description) && (

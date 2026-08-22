@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 
 import { getLiveEdition, getImportantDates } from '@/lib/queries'
+import { formatDate } from '@/lib/dates'
 import { Badge } from '@/components/ui/badge'
 import { PageHero } from '@/components/sections/PageHero'
 
@@ -45,14 +46,13 @@ export default async function DatesPage({ params }: { params: Promise<{ locale: 
         ) : (
           <div className="relative border-l-2 border-muted ml-4 md:ml-8 space-y-12">
             {dates.map((item) => {
-              const dateObj = new Date(item.date)
-              const dateStr = dateObj.toLocaleDateString(locale, {
+              const dateStr = formatDate(item.date, locale, {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',
               })
               const endStr = item.endDate
-                ? new Date(item.endDate).toLocaleDateString(locale, {
+                ? formatDate(item.endDate, locale, {
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric',

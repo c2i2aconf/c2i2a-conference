@@ -16,6 +16,7 @@ import {
   getSiteSettings,
 } from '@/lib/queries'
 import { getServerURL } from '@/lib/server-url'
+import { formatDate, toDateUTC } from '@/lib/dates'
 import { Reveal } from '@/components/motion/Reveal'
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter'
 import { Countdown } from '@/components/sections/Countdown'
@@ -48,13 +49,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function formatDateRange(edition: Edition, locale: 'fr' | 'en') {
-  const start = new Date(edition.startDate)
-  const end = new Date(edition.endDate)
   const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
-  if (start.toDateString() === end.toDateString()) {
-    return start.toLocaleDateString(locale, opts)
+  const start = toDateUTC(edition.startDate)
+  const end = toDateUTC(edition.endDate)
+  if (start.toISOString() === end.toISOString()) {
+    return formatDate(edition.startDate, locale, opts)
   }
-  return `${start.toLocaleDateString(locale, { day: 'numeric', month: 'long' })} – ${end.toLocaleDateString(locale, opts)}`
+  return `${formatDate(edition.startDate, locale, { day: 'numeric', month: 'long' })} – ${formatDate(edition.endDate, locale, opts)}`
 }
 
 function getMediaUrl(media: unknown): string | null {
@@ -297,10 +298,10 @@ export default async function HomePage({ params }: Props) {
                 <div className="flex items-center gap-5 rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
                   <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary text-primary-foreground">
                     <span className="text-lg font-bold leading-none">
-                      {new Date(item.date).getDate()}
+                      {toDateUTC(item.date).getUTCDate()}
                     </span>
                     <span className="mt-1 text-[10px] font-medium uppercase">
-                      {new Date(item.date).toLocaleDateString(locale, { month: 'short' })}
+                      {formatDate(item.date, locale, { month: 'short' })}
                     </span>
                   </div>
                   <div className="min-w-0">

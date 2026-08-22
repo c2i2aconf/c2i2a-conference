@@ -57,7 +57,7 @@ export default async function SpeakersPage({
                   {speaker.isKeynote && (
                     <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground">
                       <Star className="w-3 h-3 mr-1 fill-current" />
-                      Keynote
+                      {t('keynote')}
                     </Badge>
                   )}
                 </div>

@@ -63,37 +63,49 @@ export default async function SponsorsPage({
                   <div
                     className={`flex flex-wrap justify-center gap-6 ${isPlatinum ? 'max-w-4xl mx-auto' : ''}`}
                   >
-                    {groupedSponsors[tier].map((sponsor) => (
-                      <a
-                        key={sponsor.id}
-                        href={sponsor.website || '#'}
-                        target={sponsor.website ? '_blank' : '_self'}
-                        rel={sponsor.website ? 'noopener noreferrer' : ''}
-                        className={`block bg-white p-6 rounded-xl border hover:shadow-lg transition-all ${
-                          isPlatinum
-                            ? 'w-full md:w-80 h-48'
-                            : isGold
-                              ? 'w-full sm:w-64 h-40'
-                              : 'w-full sm:w-48 h-32'
-                        }`}
-                      >
-                        {sponsor.logo && typeof sponsor.logo === 'object' && sponsor.logo.url ? (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Image
-                              src={sponsor.logo.url}
-                              alt={sponsor.name}
-                              width={sponsor.logo.width ?? 300}
-                              height={sponsor.logo.height ?? 120}
-                              className="max-w-full max-h-full w-auto h-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-lg font-bold text-slate-800">
-                            {sponsor.name}
-                          </div>
-                        )}
-                      </a>
-                    ))}
+                    {groupedSponsors[tier].map((sponsor) => {
+                      const cardClasses = `block bg-white p-6 rounded-xl border hover:shadow-lg transition-all ${
+                        isPlatinum
+                          ? 'w-full md:w-80 h-48'
+                          : isGold
+                            ? 'w-full sm:w-64 h-40'
+                            : 'w-full sm:w-48 h-32'
+                      }`
+                      const cardContent = (
+                        <>
+                          {sponsor.logo && typeof sponsor.logo === 'object' && sponsor.logo.url ? (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Image
+                                src={sponsor.logo.url}
+                                alt={sponsor.name}
+                                width={sponsor.logo.width ?? 300}
+                                height={sponsor.logo.height ?? 120}
+                                className="max-w-full max-h-full w-auto h-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-lg font-bold text-slate-800">
+                              {sponsor.name}
+                            </div>
+                          )}
+                        </>
+                      )
+                      return sponsor.website ? (
+                        <a
+                          key={sponsor.id}
+                          href={sponsor.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cardClasses}
+                        >
+                          {cardContent}
+                        </a>
+                      ) : (
+                        <div key={sponsor.id} className={cardClasses}>
+                          {cardContent}
+                        </div>
+                      )
+                    })}
                   </div>
                 </section>
               )

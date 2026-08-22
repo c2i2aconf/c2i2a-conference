@@ -37,7 +37,9 @@
     "free": "Gratuit",
     "language": "Langue",
     "scroll": "Défiler",
-    "close": "Fermer"
+    "close": "Fermer",
+    "toggleTheme": "Changer de thème",
+    "toggleLanguage": "Changer de langue"
   },
   "home": {
     "organizedBy": "Organisé par {organization}",
@@ -92,7 +94,8 @@
   "speakers": {
     "title": "Intervenants",
     "subtitle": "Découvrez les experts et chercheurs qui interviendront lors de cette édition.",
-    "empty": "Aucun intervenant n'a été annoncé pour le moment."
+    "empty": "Aucun intervenant n'a été annoncé pour le moment.",
+    "keynote": "Conférencier invité"
   },
   "sponsors": {
     "title": "Partenaires",

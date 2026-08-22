@@ -130,6 +130,11 @@ export async function requestMagicLink(
 
     const link = `${getServerURL()}/${locale}/auth/verify?token=${token}`
 
+    // Without RESEND_API_KEY Payload silently falls back to a console
+    // adapter that never throws — detect it explicitly so the link is
+    // still surfaced in local dev
+    const emailConfigured = Boolean(process.env.RESEND_API_KEY)
+
     try {
       await payload.sendEmail({
         to: email,
@@ -137,11 +142,12 @@ export async function requestMagicLink(
         html: await magicLinkEmail(locale, link, TOKEN_TTL_MINUTES),
       })
     } catch (emailError) {
-      // No email adapter in local dev — surface the link instead
       console.warn(`Magic link email not sent (${email})`, emailError)
-      if (process.env.NODE_ENV !== 'production') {
-        return { success: true, devLink: link }
-      }
+    }
+
+    if (!emailConfigured && process.env.NODE_ENV !== 'production') {
+      console.log(`Magic link for ${email}: ${link}`)
+      return { success: true, devLink: link }
     }
 
     return { success: true }

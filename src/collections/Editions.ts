@@ -12,7 +12,7 @@ export const Editions: CollectionConfig = {
   slug: 'editions',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['year', 'title', 'status', 'startDate'],
+    defaultColumns: ['year', 'title', 'editionStatus', 'startDate'],
     group: 'Content',
   },
   access: {

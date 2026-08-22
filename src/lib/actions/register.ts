@@ -27,13 +27,15 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
 
     const payload = await getPayload({ config: configPromise })
 
-    // Check for duplicates
+    // Check for duplicates — internal existence check; registrations
+    // are admin/self-readable so anonymous requests must bypass access
     const existing = await payload.find({
       collection: 'registrations',
       where: {
         and: [{ email: { equals: email } }, { edition: { equals: edition.id } }],
       },
       limit: 1,
+      overrideAccess: true,
     })
 
     if (existing.totalDocs > 0) {
