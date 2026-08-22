@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import { notFound } from 'next/navigation'
-import { NextIntlClientProvider, hasLocale } from 'next-intl'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { NextIntlClientProvider, hasLocale, type AbstractIntlMessages } from 'next-intl'
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { ThemeProvider } from 'next-themes'
 import React from 'react'
 
@@ -12,6 +12,9 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
 import '../globals.css'
+
+/** Namespaces used by client components — the rest stay server-only. */
+const CLIENT_NAMESPACES = ['common', 'nav', 'auth', 'program', 'registration', 'submission']
 
 const inter = Inter({
   subsets: ['latin'],
@@ -61,11 +64,16 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale)
 
+  const messages = await getMessages()
+  const clientMessages = Object.fromEntries(
+    CLIENT_NAMESPACES.map((namespace) => [namespace, messages[namespace]]),
+  ) as AbstractIntlMessages
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <NextIntlClientProvider>
+          <NextIntlClientProvider messages={clientMessages}>
             <div className="relative flex min-h-screen flex-col">
               <Header />
               <main className="flex-1">{children}</main>

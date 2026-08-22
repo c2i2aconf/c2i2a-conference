@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import Image from 'next/image'
 import { getEditionByYear, getSessions, getSpeakers, getGalleryItems } from '@/lib/queries'
 import { getMediaVariant } from '@/lib/media'
+import { toScheduleSessions } from '@/lib/schedule'
 import { notFound } from 'next/navigation'
 import { ProgramSchedule } from '@/components/sections/ProgramSchedule'
 import { Card, CardContent } from '@/components/ui/card'
@@ -43,9 +44,11 @@ export default async function ArchiveYearPage({ params }: Props) {
     notFound()
   }
 
-  const sessions = await getSessions(edition.id, locale)
-  const speakers = await getSpeakers(edition.id, locale)
-  const gallery = await getGalleryItems(edition.id, locale)
+  const [sessions, speakers, gallery] = await Promise.all([
+    getSessions(edition.id, locale),
+    getSpeakers(edition.id, locale),
+    getGalleryItems(edition.id, locale),
+  ])
 
   return (
     <>
@@ -58,7 +61,7 @@ export default async function ArchiveYearPage({ params }: Props) {
         {/* Program */}
         <section className="mb-24">
           <h2 className="text-3xl font-bold mb-8 border-b pb-4">{t('program')}</h2>
-          <ProgramSchedule sessions={sessions} />
+          <ProgramSchedule sessions={toScheduleSessions(sessions)} />
         </section>
 
         {/* Speakers */}

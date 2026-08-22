@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 
 import { getLiveEdition, getSessions } from '@/lib/queries'
+import { toScheduleSessions } from '@/lib/schedule'
 import { ProgramSchedule } from '@/components/sections/ProgramSchedule'
 import { PageHero } from '@/components/sections/PageHero'
 
@@ -38,7 +39,7 @@ export default async function ProgramPage({
         {!edition || sessions.length === 0 ? (
           <p className="text-center text-muted-foreground">{t('empty')}</p>
         ) : (
-          <ProgramSchedule sessions={sessions} />
+          <ProgramSchedule sessions={toScheduleSessions(sessions)} />
         )}
       </section>
     </>

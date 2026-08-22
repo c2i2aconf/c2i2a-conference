@@ -1,7 +1,7 @@
 'use client'
 
-import { motion, useReducedMotion } from 'framer-motion'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 interface RevealProps {
   children: ReactNode
@@ -14,19 +14,37 @@ interface RevealProps {
 
 /** Subtle scroll-reveal: fades and slides up once when entering the viewport. */
 export function Reveal({ children, delay = 0, y = 24, className }: RevealProps) {
-  const reduceMotion = useReducedMotion()
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
 
-  if (reduceMotion) return <div className={className}>{children}</div>
+  useEffect(() => {
+    const node = ref.current
+    if (!node) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '-80px' },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
 
+  // Reduced motion is handled in CSS: content shows instantly, nothing animates
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+    <div
+      ref={ref}
+      className={cn(
+        'transition-[opacity,transform] duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100',
+        visible ? 'translate-y-0 opacity-100' : 'translate-y-(--reveal-y) opacity-0',
+        className,
+      )}
+      style={{ '--reveal-y': `${y}px`, transitionDelay: `${delay}s` } as CSSProperties}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }

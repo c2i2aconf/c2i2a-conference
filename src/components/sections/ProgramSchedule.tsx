@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useTranslations, useLocale } from 'next-intl'
-import { Session } from '@/payload-types'
+import type { ScheduleSession } from '@/lib/schedule'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -10,10 +10,10 @@ import { MapPin, Clock } from 'lucide-react'
 import { formatDate } from '@/lib/dates'
 
 interface ProgramScheduleProps {
-  sessions: Session[]
+  sessions: ScheduleSession[]
 }
 
-function getBadgeColor(type: Session['type']) {
+function getBadgeColor(type: ScheduleSession['type']) {
   switch (type) {
     case 'keynote': return 'bg-primary text-primary-foreground'
     case 'ceremony': return 'bg-accent text-accent-foreground'
@@ -23,7 +23,7 @@ function getBadgeColor(type: Session['type']) {
   }
 }
 
-function getBorderColor(type: Session['type']) {
+function getBorderColor(type: ScheduleSession['type']) {
   switch (type) {
     case 'keynote': return 'border-l-primary'
     case 'ceremony': return 'border-l-accent'
@@ -39,7 +39,7 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
 
   // Group by date
   const groupedByDate = React.useMemo(() => {
-    const map = new Map<string, Session[]>()
+    const map = new Map<string, ScheduleSession[]>()
     sessions.forEach(s => {
       const d = s.date
       if (!map.has(d)) map.set(d, [])
@@ -52,12 +52,12 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
 
   const activeSessions = React.useMemo(
     () => groupedByDate.find(g => g[0] === activeDate)?.[1] || [],
-    [groupedByDate, activeDate],
+    [groupedByDate, activeDate]
   )
 
   // Group active sessions by time slot
   const timeSlots = React.useMemo(() => {
-    const map = new Map<string, Session[]>()
+    const map = new Map<string, ScheduleSession[]>()
     activeSessions.forEach(s => {
       const time = `${s.startTime} - ${s.endTime}`
       if (!map.has(time)) map.set(time, [])
@@ -120,12 +120,12 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
                         {session.room && (
                           <div className="flex items-center gap-1 text-sm text-muted-foreground whitespace-nowrap">
                             <MapPin className="w-4 h-4" />
-                            {typeof session.room === 'object' ? session.room.name : ''}
+                            {session.room.name}
                           </div>
                         )}
                       </div>
                       <CardTitle className="text-xl">
-                        {session.title || (session.speakers && session.speakers.length > 0 && typeof session.speakers[0] === 'object' ? session.speakers[0].name : t('types.session'))}
+                        {session.title || (session.speakers.length > 0 ? session.speakers[0].name : t('types.session'))}
                       </CardTitle>
                     </CardHeader>
                     {((session.speakers && session.speakers.length > 0) || session.description) && (
@@ -135,17 +135,14 @@ export function ProgramSchedule({ sessions }: ProgramScheduleProps) {
                         )}
                         {session.speakers && session.speakers.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-4">
-                            {session.speakers.map((speaker, i) => {
-                              if (typeof speaker !== 'object') return null
-                              return (
-                                <div key={speaker.id || i} className="flex items-center gap-2 text-sm font-medium">
-                                  <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs overflow-hidden">
-                                    {speaker.name.charAt(0)}
-                                  </div>
-                                  <span>{speaker.name}</span>
+                            {session.speakers.map((speaker, i) => (
+                              <div key={speaker.id || i} className="flex items-center gap-2 text-sm font-medium">
+                                <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs overflow-hidden">
+                                  {speaker.name.charAt(0)}
                                 </div>
-                              )
-                            })}
+                                <span>{speaker.name}</span>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </CardContent>

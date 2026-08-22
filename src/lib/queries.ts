@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import type {
@@ -16,28 +17,35 @@ async function getCachedPayload() {
   return await getPayload({ config: configPromise })
 }
 
-function logQueryFailure(context: string, error: unknown) {
+async function logQueryFailure(context: string, error: unknown) {
   const cause = error instanceof Error ? error.cause : undefined
   const code =
     cause && typeof cause === 'object' && 'code' in cause ? String(cause.code) : 'unavailable'
   console.error(`${context} (${code})`)
 }
 
-export async function getSiteSettings(locale: 'fr' | 'en'): Promise<SiteSetting | null> {
-  try {
-    const payload = await getCachedPayload()
-    return await payload.findGlobal({
-      slug: 'site-settings',
-      locale,
-      fallbackLocale: 'fr',
-    })
-  } catch (error) {
-    logQueryFailure('Failed to fetch site settings', error)
-    return null
-  }
-}
+/**
+ * Globals shared by generateMetadata, the page body, Header and Footer are
+ * wrapped in React `cache()` so each is fetched once per request no matter
+ * how many components ask for it.
+ */
+export const getSiteSettings = cache(
+  async (locale: 'fr' | 'en'): Promise<SiteSetting | null> => {
+    try {
+      const payload = await getCachedPayload()
+      return await payload.findGlobal({
+        slug: 'site-settings',
+        locale,
+        fallbackLocale: 'fr',
+      })
+    } catch (error) {
+      logQueryFailure('Failed to fetch site settings', error)
+      return null
+    }
+  },
+)
 
-export async function getLiveEdition(locale: 'fr' | 'en'): Promise<Edition | null> {
+export const getLiveEdition = cache(async (locale: 'fr' | 'en'): Promise<Edition | null> => {
   try {
     const payload = await getCachedPayload()
     const { docs } = await payload.find({
@@ -58,28 +66,30 @@ export async function getLiveEdition(locale: 'fr' | 'en'): Promise<Edition | nul
     logQueryFailure('Failed to fetch live edition', error)
     return null
   }
-}
+})
 
-export async function getEditionByYear(year: number, locale: 'fr' | 'en'): Promise<Edition | null> {
-  try {
-    const payload = await getCachedPayload()
-    const { docs } = await payload.find({
-      collection: 'editions',
-      locale,
-      fallbackLocale: 'fr',
-      where: {
-        year: {
-          equals: year,
+export const getEditionByYear = cache(
+  async (year: number, locale: 'fr' | 'en'): Promise<Edition | null> => {
+    try {
+      const payload = await getCachedPayload()
+      const { docs } = await payload.find({
+        collection: 'editions',
+        locale,
+        fallbackLocale: 'fr',
+        where: {
+          year: {
+            equals: year,
+          },
         },
-      },
-      limit: 1,
-    })
-    return docs[0] || null
-  } catch (error) {
-    logQueryFailure(`Failed to fetch edition ${year}`, error)
-    return null
-  }
-}
+        limit: 1,
+      })
+      return docs[0] || null
+    } catch (error) {
+      logQueryFailure(`Failed to fetch edition ${year}`, error)
+      return null
+    }
+  },
+)
 
 export async function getArchivedEditions(locale: 'fr' | 'en'): Promise<Edition[]> {
   try {
@@ -298,22 +308,26 @@ export async function getPageBySlug(
   }
 }
 
-export async function getNavigationPages(editionId: number, locale: 'fr' | 'en'): Promise<Page[]> {
-  try {
-    const payload = await getCachedPayload()
-    const { docs } = await payload.find({
-      collection: 'pages',
-      locale,
-      fallbackLocale: 'fr',
-      where: {
-        and: [{ edition: { equals: editionId } }, { showInNav: { equals: true } }],
-      },
-      sort: 'navOrder',
-      limit: 50,
-    })
-    return docs
-  } catch (error) {
-    logQueryFailure('Failed to fetch navigation pages', error)
-    return []
-  }
-}
+export const getNavigationPages = cache(
+  async (editionId: number, locale: 'fr' | 'en'): Promise<Pick<Page, 'id' | 'title' | 'slug'>[]> => {
+    try {
+      const payload = await getCachedPayload()
+      const { docs } = await payload.find({
+        collection: 'pages',
+        locale,
+        fallbackLocale: 'fr',
+        where: {
+          and: [{ edition: { equals: editionId } }, { showInNav: { equals: true } }],
+        },
+        // Nav links only need the title; skip fetching page content
+        select: { title: true, slug: true },
+        sort: 'navOrder',
+        limit: 50,
+      })
+      return docs
+    } catch (error) {
+      logQueryFailure('Failed to fetch navigation pages', error)
+      return []
+    }
+  },
+)

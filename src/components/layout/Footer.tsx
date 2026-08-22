@@ -15,8 +15,7 @@ export async function Footer() {
   const t = await getTranslations('footer')
   const tNav = await getTranslations('nav')
   const locale = (await getLocale()) as 'fr' | 'en'
-  const siteSettings = await getSiteSettings(locale)
-  const edition = await getLiveEdition(locale)
+  const [siteSettings, edition] = await Promise.all([getSiteSettings(locale), getLiveEdition(locale)])
   const customPages = edition ? await getNavigationPages(edition.id, locale) : []
 
   const exploreLinks = [
