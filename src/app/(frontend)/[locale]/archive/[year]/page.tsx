@@ -10,6 +10,9 @@ import type { Metadata } from 'next'
 
 type Props = { params: Promise<{ locale: 'fr' | 'en'; year: string }> }
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, year } = await params
   const edition = await getEditionByYear(Number(year), locale)

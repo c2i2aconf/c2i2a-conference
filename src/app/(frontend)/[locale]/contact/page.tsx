@@ -7,6 +7,9 @@ import { PageHero } from '@/components/sections/PageHero'
 import { Reveal } from '@/components/motion/Reveal'
 import { Card, CardContent } from '@/components/ui/card'
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({
   params,
 }: {

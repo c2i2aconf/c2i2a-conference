@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrEditor } from '../access'
+import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 export const Sponsors: CollectionConfig = {
   slug: 'sponsors',
@@ -8,6 +9,10 @@ export const Sponsors: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'tier', 'edition'],
     group: 'Content',
+  },
+  hooks: {
+    afterChange: [revalidateSiteAfterChange],
+    afterDelete: [revalidateSiteAfterDelete],
   },
   access: {
     read: anyone,

@@ -7,6 +7,9 @@ import { PageHero } from '@/components/sections/PageHero'
 
 type Props = { params: Promise<{ locale: 'fr' | 'en'; slug: string }> }
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params
   const edition = await getLiveEdition(locale)

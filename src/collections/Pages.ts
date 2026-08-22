@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrEditor } from '../access'
+import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 /**
  * Flexible content pages per edition (description, access, contacts…).
@@ -12,6 +13,10 @@ export const Pages: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'edition', 'showInNav'],
     group: 'Content',
+  },
+  hooks: {
+    afterChange: [revalidateSiteAfterChange],
+    afterDelete: [revalidateSiteAfterDelete],
   },
   access: {
     read: anyone,

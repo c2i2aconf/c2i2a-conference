@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 import { anyone, isAdminOrEditor } from '../access'
+import { revalidateSiteAfterGlobalChange } from '../hooks/revalidateSite'
 
 /** Global site settings — editable by admins, applies across all editions. */
 export const SiteSettings: GlobalConfig = {
@@ -8,6 +9,9 @@ export const SiteSettings: GlobalConfig = {
   label: 'Site Settings',
   admin: {
     group: 'Admin',
+  },
+  hooks: {
+    afterChange: [revalidateSiteAfterGlobalChange],
   },
   access: {
     read: anyone,

@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrEditor } from '../access'
+import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 /** One doc per committee per edition, members managed as an ordered list. */
 export const Committees: CollectionConfig = {
@@ -8,6 +9,10 @@ export const Committees: CollectionConfig = {
   admin: {
     useAsTitle: 'type',
     group: 'Content',
+  },
+  hooks: {
+    afterChange: [revalidateSiteAfterChange],
+    afterDelete: [revalidateSiteAfterDelete],
   },
   access: {
     read: anyone,

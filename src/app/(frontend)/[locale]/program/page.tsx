@@ -5,6 +5,9 @@ import { getLiveEdition, getSessions } from '@/lib/queries'
 import { ProgramSchedule } from '@/components/sections/ProgramSchedule'
 import { PageHero } from '@/components/sections/PageHero'
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({
   params,
 }: {

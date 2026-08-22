@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrEditor } from '../access'
+import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 export const ImportantDates: CollectionConfig = {
   slug: 'important-dates',
@@ -8,6 +9,10 @@ export const ImportantDates: CollectionConfig = {
     useAsTitle: 'label',
     defaultColumns: ['date', 'label', 'status', 'edition'],
     group: 'Content',
+  },
+  hooks: {
+    afterChange: [revalidateSiteAfterChange],
+    afterDelete: [revalidateSiteAfterDelete],
   },
   access: {
     read: anyone,

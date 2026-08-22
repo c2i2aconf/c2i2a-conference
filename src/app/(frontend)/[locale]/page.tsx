@@ -28,6 +28,9 @@ type Props = {
   params: Promise<{ locale: 'fr' | 'en' }>
 }
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params
   const [edition, settings] = await Promise.all([getLiveEdition(locale), getSiteSettings(locale)])

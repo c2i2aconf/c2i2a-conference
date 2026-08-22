@@ -5,6 +5,9 @@ import { getLiveEdition, getCommittees } from '@/lib/queries'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageHero } from '@/components/sections/PageHero'
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({
   params,
 }: {

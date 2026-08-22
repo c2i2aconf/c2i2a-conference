@@ -7,6 +7,9 @@ import { getLiveEdition, getGalleryItems } from '@/lib/queries'
 import { getMediaVariant } from '@/lib/media'
 import { PageHero } from '@/components/sections/PageHero'
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({
   params,
 }: {

@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrSelf } from '../access'
+import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 /**
  * Free attendee registrations.
@@ -86,6 +87,8 @@ export const Registrations: CollectionConfig = {
     },
   ],
   hooks: {
+    afterChange: [revalidateSiteAfterChange],
+    afterDelete: [revalidateSiteAfterDelete],
     beforeValidate: [
       ({ data, req, operation }) => {
         if (operation !== 'create' || !data) return data

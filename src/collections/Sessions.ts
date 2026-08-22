@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrEditor } from '../access'
+import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 /**
  * A program slot: keynote, parallel session, coffee break, ceremony…
@@ -12,6 +13,10 @@ export const Sessions: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['date', 'startTime', 'endTime', 'title', 'type'],
     group: 'Program',
+  },
+  hooks: {
+    afterChange: [revalidateSiteAfterChange],
+    afterDelete: [revalidateSiteAfterDelete],
   },
   access: {
     read: anyone,

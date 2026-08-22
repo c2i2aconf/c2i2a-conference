@@ -9,6 +9,9 @@ import { Badge } from '@/components/ui/badge'
 import { PageHero } from '@/components/sections/PageHero'
 import { Star, Link as LinkIcon, Globe } from 'lucide-react'
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({
   params,
 }: {

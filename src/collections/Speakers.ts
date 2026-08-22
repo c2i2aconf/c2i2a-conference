@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrEditor } from '../access'
+import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 export const Speakers: CollectionConfig = {
   slug: 'speakers',
@@ -8,6 +9,10 @@ export const Speakers: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'affiliation', 'isKeynote', 'edition'],
     group: 'Program',
+  },
+  hooks: {
+    afterChange: [revalidateSiteAfterChange],
+    afterDelete: [revalidateSiteAfterDelete],
   },
   access: {
     read: anyone,

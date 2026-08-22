@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrEditor } from '../access'
+import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 /**
  * A conference edition (one per year: C2I2A 2024, 2025, 2026…).
@@ -14,6 +15,10 @@ export const Editions: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['year', 'title', 'editionStatus', 'startDate'],
     group: 'Content',
+  },
+  hooks: {
+    afterChange: [revalidateSiteAfterChange],
+    afterDelete: [revalidateSiteAfterDelete],
   },
   access: {
     read: anyone,

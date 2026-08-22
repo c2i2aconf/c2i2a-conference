@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrEditor } from '../access'
+import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 /** Conference rooms (e.g. "Amphi Ibn Batouta"). Names are proper nouns → not localized. */
 export const Rooms: CollectionConfig = {
@@ -8,6 +9,10 @@ export const Rooms: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'Program',
+  },
+  hooks: {
+    afterChange: [revalidateSiteAfterChange],
+    afterDelete: [revalidateSiteAfterDelete],
   },
   access: {
     read: anyone,

@@ -4,6 +4,9 @@ import type { Metadata } from 'next'
 import { RegistrationForm } from '@/components/sections/RegistrationForm'
 import { PageHero } from '@/components/sections/PageHero'
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({
   params,
 }: {

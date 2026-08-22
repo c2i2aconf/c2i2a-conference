@@ -8,6 +8,9 @@ import { PageHero } from '@/components/sections/PageHero'
 import { Link } from '@/i18n/navigation'
 import { Calendar } from 'lucide-react'
 
+// CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
+export const revalidate = 3600
+
 export async function generateMetadata({
   params,
 }: {
