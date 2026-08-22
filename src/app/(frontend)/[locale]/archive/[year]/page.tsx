@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import Image from 'next/image'
 import { getEditionByYear, getSessions, getSpeakers, getGalleryItems } from '@/lib/queries'
+import { getMediaVariant } from '@/lib/media'
 import { notFound } from 'next/navigation'
 import { ProgramSchedule } from '@/components/sections/ProgramSchedule'
 import { Card, CardContent } from '@/components/ui/card'
@@ -62,28 +63,31 @@ export default async function ArchiveYearPage({ params }: Props) {
           <section className="mb-24">
             <h2 className="text-3xl font-bold mb-8 border-b pb-4">{t('speakers')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {speakers.map((speaker) => (
-                <Card key={speaker.id} className="text-center overflow-hidden">
-                  <div className="aspect-square relative bg-muted">
-                    {speaker.photo && typeof speaker.photo === 'object' && speaker.photo.url ? (
-                      <Image
-                        src={speaker.photo.url}
-                        alt={speaker.name}
-                        fill
-                        sizes="(max-width: 640px) 50vw, 16vw"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl text-muted-foreground/30 font-bold">
-                        {speaker.name.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-3">
-                    <h3 className="font-semibold text-sm line-clamp-2">{speaker.name}</h3>
-                  </CardContent>
-                </Card>
-              ))}
+              {speakers.map((speaker) => {
+                const photo = getMediaVariant(speaker.photo, 'card')
+                return (
+                  <Card key={speaker.id} className="text-center overflow-hidden">
+                    <div className="aspect-square relative bg-muted">
+                      {photo ? (
+                        <Image
+                          src={photo.url}
+                          alt={speaker.name}
+                          fill
+                          sizes="(max-width: 640px) 50vw, 16vw"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl text-muted-foreground/30 font-bold">
+                          {speaker.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-3">
+                      <h3 className="font-semibold text-sm line-clamp-2">{speaker.name}</h3>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </section>
         )}
@@ -94,14 +98,15 @@ export default async function ArchiveYearPage({ params }: Props) {
             <h2 className="text-3xl font-bold mb-8 border-b pb-4">{t('gallery')}</h2>
             <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
               {gallery.map((item) => {
-                if (!item.image || typeof item.image !== 'object' || !item.image.url) return null
+                const image = getMediaVariant(item.image, 'card')
+                if (!image) return null
                 return (
                   <div key={item.id} className="break-inside-avoid rounded-xl overflow-hidden">
                     <Image
-                      src={item.image.url}
+                      src={image.url}
                       alt={item.caption || ''}
-                      width={item.image.width ?? 1200}
-                      height={item.image.height ?? 800}
+                      width={image.width ?? 768}
+                      height={image.height ?? 512}
                       sizes="(max-width: 768px) 50vw, 25vw"
                       className="w-full h-auto"
                     />

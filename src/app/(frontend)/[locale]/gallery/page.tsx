@@ -4,6 +4,7 @@ import Image from 'next/image'
 import type { Metadata } from 'next'
 
 import { getLiveEdition, getGalleryItems } from '@/lib/queries'
+import { getMediaVariant } from '@/lib/media'
 import { PageHero } from '@/components/sections/PageHero'
 
 export async function generateMetadata({
@@ -37,17 +38,18 @@ export default async function GalleryPage({
         ) : (
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
             {items.map((item) => {
-              if (!item.image || typeof item.image !== 'object' || !item.image.url) return null
+              const image = getMediaVariant(item.image, 'card')
+              if (!image) return null
               return (
                 <div
                   key={item.id}
                   className="break-inside-avoid relative group rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all"
                 >
                   <Image
-                    src={item.image.url}
+                    src={image.url}
                     alt={item.caption || t('imageAlt')}
-                    width={item.image.width ?? 1200}
-                    height={item.image.height ?? 800}
+                    width={image.width ?? 768}
+                    height={image.height ?? 512}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
                   />

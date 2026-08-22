@@ -7,12 +7,14 @@ import type { Plugin } from 'payload'
 const CACHE_SECONDS = 60 * 60
 
 function createPrivateAdapter(token: string): Adapter {
-  return ({ prefix: collectionPrefix = '' }) => ({
+  return ({ collection, prefix: collectionPrefix = '' }) => ({
     name: 'private-vercel-blob',
+    // Blobs are private; the public URL points at Payload's static file
+    // route so every request goes through collection access control (and
+    // next/image only ever sees same-origin /api/media/file/... paths)
     generateURL: ({ filename, prefix: docPrefix }) => {
-      const { fileKey } = getFileKey({ collectionPrefix, docPrefix, filename })
-      const storeId = token.match(/^vercel_blob_rw_([a-z\d]+)_/i)?.[1]?.toLowerCase()
-      return `https://${storeId}.private.blob.vercel-storage.com/${fileKey}`
+      const prefixPart = docPrefix ? `${docPrefix}/` : ''
+      return `/api/${collection.slug}/file/${prefixPart}${filename}`
     },
     handleUpload: async ({ data, file }) => {
       const { fileKey } = getFileKey({
@@ -57,7 +59,10 @@ function createPrivateAdapter(token: string): Adapter {
         if (!result) return new Response(null, { status: 404 })
 
         const headers = new Headers(incomingHeaders)
-        headers.set('Cache-Control', `private, max-age=${CACHE_SECONDS}`)
+        // Media is publicly readable, so its responses can be shared-cached;
+        // submission files must stay private to the requester
+        const visibility = params.collection === 'media' ? 'public' : 'private'
+        headers.set('Cache-Control', `${visibility}, max-age=${CACHE_SECONDS}`)
         headers.set('Content-Disposition', result.blob.contentDisposition)
         headers.set('ETag', result.blob.etag)
         if (result.statusCode === 304) return new Response(null, { headers, status: 304 })

@@ -17,6 +17,7 @@ import {
 } from '@/lib/queries'
 import { getServerURL } from '@/lib/server-url'
 import { formatDate, toDateUTC } from '@/lib/dates'
+import { getMediaUrl, getMediaVariant } from '@/lib/media'
 import { Reveal } from '@/components/motion/Reveal'
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter'
 import { Countdown } from '@/components/sections/Countdown'
@@ -58,13 +59,6 @@ function formatDateRange(edition: Edition, locale: 'fr' | 'en') {
   return `${formatDate(edition.startDate, locale, { day: 'numeric', month: 'long' })} – ${formatDate(edition.endDate, locale, opts)}`
 }
 
-function getMediaUrl(media: unknown): string | null {
-  if (media && typeof media === 'object' && 'url' in media && typeof media.url === 'string') {
-    return media.url
-  }
-  return null
-}
-
 export default async function HomePage({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
@@ -84,7 +78,7 @@ export default async function HomePage({ params }: Props) {
 
   const keynotes = speakers.filter((s) => s.isKeynote).slice(0, 4)
   const upcomingDates = dates.slice(0, 4)
-  const heroImage = getMediaUrl(edition?.bannerImage)
+  const heroImage = getMediaVariant(edition?.bannerImage, 'hero')?.url ?? null
   const days =
     edition && edition.startDate && edition.endDate
       ? Math.max(
@@ -238,14 +232,14 @@ export default async function HomePage({ params }: Props) {
             </Reveal>
             <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {keynotes.map((speaker, i) => {
-                const photo = getMediaUrl(speaker.photo)
+                const photo = getMediaVariant(speaker.photo, 'card')
                 return (
                   <Reveal key={speaker.id} delay={i * 0.08}>
                     <div className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-xl">
                       <div className="relative aspect-square bg-muted">
                         {photo ? (
                           <Image
-                            src={photo}
+                            src={photo.url}
                             alt={speaker.name}
                             fill
                             sizes="(max-width: 640px) 100vw, 25vw"
@@ -336,13 +330,13 @@ export default async function HomePage({ params }: Props) {
             </Reveal>
             <div className="mt-14 flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
               {sponsors.map((sponsor) => {
-                const logo = getMediaUrl(sponsor.logo)
+                const logo = getMediaVariant(sponsor.logo, 'thumbnail')
                 const content = logo ? (
                   <Image
-                    src={logo}
+                    src={logo.url}
                     alt={sponsor.name}
-                    width={160}
-                    height={64}
+                    width={logo.width ?? 160}
+                    height={logo.height ?? 64}
                     className="h-12 w-auto object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
                   />
                 ) : (
@@ -379,7 +373,7 @@ export default async function HomePage({ params }: Props) {
           </Reveal>
           <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-4">
             {gallery.slice(0, 4).map((item, i) => {
-              const src = getMediaUrl(item.image)
+              const src = getMediaVariant(item.image, 'card')?.url
               if (!src) return null
               return (
                 <Reveal key={item.id} delay={i * 0.06}>
