@@ -9,6 +9,7 @@ import { MobileMenu } from './MobileMenu'
 import { HeaderShell } from './HeaderShell'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { ThemeToggle } from './ThemeToggle'
+import { UserMenu } from './UserMenu'
 import { Button } from '@/components/ui/button'
 
 export async function Header() {
@@ -63,6 +64,7 @@ export async function Header() {
           >
             <Link href="/registration">{t('registration')}</Link>
           </Button>
+          <UserMenu />
           <ThemeToggle />
           <LanguageSwitcher />
           <MobileMenu

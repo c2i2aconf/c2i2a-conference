@@ -130,6 +130,7 @@
     "country": "Pays",
     "submit": "Valider mon inscription",
     "success": "Inscription enregistrée ! Vérifiez votre boîte mail.",
+    "emailNotSent": "Votre inscription est bien enregistrée, mais l'e-mail de confirmation n'a pas pu être envoyé. Si vous avez besoin d'une confirmation écrite, contactez-nous.",
     "submitting": "Envoi…",
     "errors": {
       "duplicate_email": "Cet e-mail est déjà inscrit.",

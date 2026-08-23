@@ -7,6 +7,7 @@ import { Menu } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { UserMenu } from './UserMenu'
 
 const ITEMS = [
   { href: '/', key: 'home' },
@@ -81,6 +82,7 @@ export function MobileMenu({
               {t('submission')}
             </Link>
           </Button>
+          <UserMenu variant="menu" onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>
     </Sheet>

@@ -83,7 +83,7 @@ export async function magicLinkEmail(locale: Locale, link: string, ttlMinutes: n
   )
 }
 
-export async function registrationEmail(locale: Locale, firstName: string) {
+export async function registrationEmail(locale: Locale, firstName: string, signInUrl?: string) {
   const fr = locale === 'fr'
   return render(
     <EmailLayout
@@ -96,6 +96,33 @@ export async function registrationEmail(locale: Locale, firstName: string) {
           ? 'Votre inscription au colloque C2I2A est confirmée. Au plaisir de vous accueillir.'
           : 'Your registration for the C2I2A conference is confirmed. We look forward to welcoming you.'}
       </Text>
+      {signInUrl ? (
+        <>
+          <Text>
+            {fr
+              ? 'Un espace vous permet de déposer votre résumé et de suivre vos soumissions :'
+              : 'You also have an account to submit an abstract and track your submissions:'}
+          </Text>
+          <Section style={{ textAlign: 'center', margin: '28px 0' }}>
+            <Button
+              href={signInUrl}
+              style={{
+                backgroundColor: '#2455a4',
+                borderRadius: '8px',
+                color: '#fff',
+                padding: '12px 20px',
+              }}
+            >
+              {fr ? 'Accéder à mon espace' : 'Sign in to your account'}
+            </Button>
+          </Section>
+          <Text style={{ color: '#667085', fontSize: '13px' }}>
+            {fr
+              ? 'Ce lien a une durée de validité limitée et ne peut être utilisé qu’une seule fois.'
+              : 'This link is valid for a limited time and can only be used once.'}
+          </Text>
+        </>
+      ) : null}
     </EmailLayout>,
   )
 }

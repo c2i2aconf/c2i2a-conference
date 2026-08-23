@@ -13,6 +13,7 @@ export function RegistrationForm() {
   const locale = useLocale() as 'fr' | 'en'
   const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = React.useState('')
+  const [emailSent, setEmailSent] = React.useState(true)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -24,6 +25,7 @@ export function RegistrationForm() {
 
     if (result.success) {
       setStatus('success')
+      setEmailSent(result.emailSent !== false)
     } else {
       setStatus('error')
       if (result.error === 'duplicate_email') {
@@ -51,6 +53,11 @@ export function RegistrationForm() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <h2 className="text-2xl font-semibold mb-2">{t('success')}</h2>
+          {!emailSent && (
+            <p className="mx-auto mt-4 max-w-md rounded-md border border-amber-500/40 bg-amber-50/70 px-4 py-3 text-sm text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+              {t('emailNotSent')}
+            </p>
+          )}
         </CardContent>
       </Card>
     )

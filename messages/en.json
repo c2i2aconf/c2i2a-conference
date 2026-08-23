@@ -130,6 +130,7 @@
     "country": "Country",
     "submit": "Confirm my registration",
     "success": "Registration saved! Check your inbox.",
+    "emailNotSent": "Your registration is confirmed, but the confirmation email could not be sent. If you need written confirmation, contact us.",
     "submitting": "Sending…",
     "errors": {
       "duplicate_email": "This email is already registered.",

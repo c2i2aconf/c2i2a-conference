@@ -4,6 +4,11 @@ import { getPayload } from 'payload'
 import { headers } from 'next/headers'
 import configPromise from '@payload-config'
 import { registrationEmail } from '@/emails/templates'
+import {
+  REGISTRATION_LINK_TTL_MINUTES,
+  createMagicLinkUrl,
+  ensurePortalUser,
+} from '@/lib/magic-link'
 import { getLiveEdition } from '../queries'
 
 export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
@@ -26,6 +31,7 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
     }
 
     const payload = await getPayload({ config: configPromise })
+    const requestHeaders = await headers()
 
     // Check for duplicates — internal existence check; registrations
     // are admin/self-readable so anonymous requests must bypass access
@@ -42,7 +48,7 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
       return { success: false, error: 'duplicate_email' }
     }
 
-    const { user } = await payload.auth({ headers: await headers() })
+    const { user } = await payload.auth({ headers: requestHeaders })
     const linkedUser = user && user.email.toLowerCase() === email ? user.id : undefined
 
     await payload.create({
@@ -60,22 +66,47 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
       },
     })
 
-    // Send confirmation email via Payload's configured adapter
+    // The confirmation email carries a single-use sign-in link so registrants
+    // can reach their account and submit a paper. Elevated CMS accounts never
+    // get links, and a link failure must not fail the registration.
+    let signInUrl: string | undefined
     try {
-      await payload.sendEmail({
-        to: email,
-        subject:
-          locale === 'fr'
-            ? "Confirmation d'inscription - C2I2A"
-            : 'Registration Confirmation - C2I2A',
-        html: await registrationEmail(locale, firstName),
-      })
-    } catch (emailError) {
-      // Don't fail the registration if email fails (often fails in dev without API key)
-      console.error('Failed to send confirmation email', emailError)
+      const portalUser = await ensurePortalUser(email, 'attendee')
+      if (portalUser) {
+        signInUrl = await createMagicLinkUrl({
+          email,
+          locale,
+          ttlMinutes: REGISTRATION_LINK_TTL_MINUTES,
+          requestHeaders,
+        })
+      }
+    } catch (linkError) {
+      console.error('Failed to create registration sign-in link', linkError)
     }
 
-    return { success: true }
+    // Without RESEND_API_KEY Payload silently falls back to a console adapter
+    // that never throws — detect it so the UI can warn the registrant.
+    const emailConfigured = Boolean(process.env.RESEND_API_KEY)
+    let emailSent = emailConfigured
+    if (emailConfigured) {
+      try {
+        await payload.sendEmail({
+          to: email,
+          subject:
+            locale === 'fr'
+              ? "Confirmation d'inscription - C2I2A"
+              : 'Registration Confirmation - C2I2A',
+          html: await registrationEmail(locale, firstName, signInUrl),
+        })
+      } catch (emailError) {
+        emailSent = false
+        console.error('Failed to send confirmation email', emailError)
+      }
+    } else {
+      console.warn('Registration email skipped — RESEND_API_KEY is not set')
+    }
+
+    return { success: true, emailSent }
   } catch (error) {
     console.error('Registration error', error)
     return { success: false, error: 'server_error' }

@@ -12,6 +12,8 @@ import { registerAction } from '@/lib/actions/register'
 let payload: Payload
 let createdEditionId: number | null = null
 let createdRegistrationIds: number[] = []
+// registerAction provisions a portal account + magic link per registration
+let createdUserEmail: string | null = null
 
 function form(overrides: Record<string, string> = {}) {
   const data = new FormData()
@@ -53,11 +55,12 @@ describe('anonymous registration', () => {
   it('registers an anonymous visitor and rejects duplicate emails', async () => {
     const formData = form()
     const email = String(formData.get('email'))
+    createdUserEmail = email
 
     // Before the overrideAccess fix on the duplicate check this returned
     // server_error for every anonymous request (Forbidden on the find)
     const first = await registerAction(formData, 'fr')
-    expect(first).toEqual({ success: true })
+    expect(first).toEqual({ success: true, emailSent: expect.any(Boolean) })
 
     const { docs } = await payload.find({
       collection: 'registrations',
@@ -80,6 +83,18 @@ describe('anonymous registration', () => {
   afterAll(async () => {
     for (const id of createdRegistrationIds) {
       await payload.delete({ collection: 'registrations', id, overrideAccess: true })
+    }
+    if (createdUserEmail) {
+      await payload.delete({
+        collection: 'magic-links',
+        where: { email: { equals: createdUserEmail } },
+        overrideAccess: true,
+      })
+      await payload.delete({
+        collection: 'users',
+        where: { email: { equals: createdUserEmail } },
+        overrideAccess: true,
+      })
     }
     if (createdEditionId !== null) {
       await payload.delete({ collection: 'editions', id: createdEditionId, overrideAccess: true })
