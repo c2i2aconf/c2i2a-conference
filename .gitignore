@@ -51,3 +51,6 @@ node_modules/
 
 .vercel
 .env*
+
+# local browser-tooling artifacts
+.playwright-mcp/
