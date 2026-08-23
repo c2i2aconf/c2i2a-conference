@@ -21,6 +21,7 @@ import { getMediaUrl, getMediaVariant } from '@/lib/media'
 import { Reveal } from '@/components/motion/Reveal'
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter'
 import { Countdown } from '@/components/sections/Countdown'
+import { MapEmbed } from '@/components/sections/MapEmbed'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 import { Button } from '@/components/ui/button'
 
@@ -427,6 +428,15 @@ export default async function HomePage({ params }: Props) {
                 </Link>
               </Button>
             </Reveal>
+            {edition.venueMapUrl && (
+              <Reveal delay={0.1} className="mx-auto mt-10 max-w-3xl">
+                <MapEmbed
+                  url={edition.venueMapUrl}
+                  title={edition.venue}
+                  className="h-[340px] md:h-[380px]"
+                />
+              </Reveal>
+            )}
           </div>
         </section>
       )}

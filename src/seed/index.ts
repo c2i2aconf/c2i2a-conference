@@ -12,6 +12,12 @@ import { getPayload } from 'payload'
 
 import config from '../payload.config'
 
+const HEEC_MAP_URL = 'https://maps.google.com/maps?q=HEEC+Marrakech&z=15&output=embed'
+const HEEC_ADDRESS_FR =
+  'Avenue Allal El Fassi, Rue Abou Oubaida Al Jarah, Daoudiate\nMarrakech, Maroc'
+const HEEC_ADDRESS_EN =
+  'Avenue Allal El Fassi, Rue Abou Oubaida Al Jarah, Daoudiate\nMarrakech, Morocco'
+
 const seed = async () => {
   const payload = await getPayload({ config })
 
@@ -106,6 +112,8 @@ const seed = async () => {
         startDate: `${currentYear}-06-01`,
         endDate: `${currentYear}-06-01`,
         venue: 'HEEC, Marrakech',
+        venueAddress: HEEC_ADDRESS_FR,
+        venueMapUrl: HEEC_MAP_URL,
         submissionsEnabled: true,
         submissionDeadline: `${currentYear}-04-30T22:59:59.000Z`,
         editionStatus: 'live',
@@ -119,11 +127,43 @@ const seed = async () => {
         title: `C2I2A ${currentYear}`,
         theme: 'Artificial intelligence and its applications',
         venue: 'HEEC, Marrakech',
+        venueAddress: HEEC_ADDRESS_EN,
       },
     })
     payload.logger.info(`  ✓ Edition ${currentYear} (live)`)
   } else {
-    payload.logger.info(`  ⏭ Edition ${currentYear} already exists, skipping`)
+    const existing = existingCurrent.docs[0]
+    if (!existing.venueMapUrl || !existing.venueAddress) {
+      await payload.update({
+        collection: 'editions',
+        id: existing.id,
+        locale: 'fr',
+        data: {
+          ...(existing.venueMapUrl ? {} : { venueMapUrl: HEEC_MAP_URL }),
+          ...(existing.venueAddress ? {} : { venueAddress: HEEC_ADDRESS_FR }),
+        },
+      })
+      payload.logger.info(`  ✓ Edition ${currentYear}: backfilled venue map/address`)
+    } else {
+      payload.logger.info(`  ⏭ Edition ${currentYear} already exists, skipping`)
+    }
+    // localized fields fall back to fr when the en translation is missing
+    const existingEn = await payload.find({
+      collection: 'editions',
+      where: { year: { equals: currentYear } },
+      locale: 'en',
+      fallbackLocale: false,
+      limit: 1,
+    })
+    if (existingEn.docs[0] && !existingEn.docs[0].venueAddress) {
+      await payload.update({
+        collection: 'editions',
+        id: existing.id,
+        locale: 'en',
+        data: { venueAddress: HEEC_ADDRESS_EN },
+      })
+      payload.logger.info(`  ✓ Edition ${currentYear}: backfilled EN venue address`)
+    }
   }
 
   // ── 2024 program (from sciencesconf) ────────────────────────────

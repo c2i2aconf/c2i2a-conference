@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 
 import { getLiveEdition } from '@/lib/queries'
 import { PageHero } from '@/components/sections/PageHero'
+import { MapEmbed } from '@/components/sections/MapEmbed'
 import { Reveal } from '@/components/motion/Reveal'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,14 +28,6 @@ export default async function AccessPage({ params }: { params: Promise<{ locale:
 
   const t = await getTranslations({ locale, namespace: 'access' })
   const edition = await getLiveEdition(locale)
-
-  // A Google Maps *embed* URL renders in an iframe; any other link becomes a button
-  const embedUrl =
-    edition?.venueMapUrl &&
-    edition.venueMapUrl.includes('google') &&
-    edition.venueMapUrl.includes('embed')
-      ? edition.venueMapUrl
-      : null
 
   return (
     <>
@@ -75,23 +68,7 @@ export default async function AccessPage({ params }: { params: Promise<{ locale:
           </Reveal>
 
           <Reveal delay={0.15}>
-            <div className="h-full min-h-[320px] overflow-hidden rounded-2xl border border-border bg-muted shadow-sm">
-              {embedUrl ? (
-                <iframe
-                  src={embedUrl}
-                  title={t('map')}
-                  className="h-full min-h-[320px] w-full border-0"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  allowFullScreen
-                />
-              ) : (
-                <div className="flex h-full min-h-[320px] items-center justify-center text-muted-foreground">
-                  <MapPin className="mr-2 h-5 w-5" />
-                  {t('map')}
-                </div>
-              )}
-            </div>
+            <MapEmbed url={edition?.venueMapUrl} title={t('map')} />
           </Reveal>
         </div>
       </section>
