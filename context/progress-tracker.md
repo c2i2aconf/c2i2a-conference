@@ -50,6 +50,16 @@
 - [x] Verification: lint, TypeScript and production build pass. The 10 database-independent integration tests pass; two database-backed suites cannot start because the configured remote Neon database is unreachable and is not identified as an isolated test database, so they were not retried outside the sandbox.
 - [x] Intentionally kept uncertain tooling/configuration candidates (`opencode.json`, `.yarnrc`, the `devsafe` script, `@payloadcms/ui`, Payload `custom.scss`) for a separate owner-confirmed cleanup.
 
+### Isolated test database guard — 2026-09-08
+- [x] Added mandatory `TEST_DATABASE_URL` validation shared by Vitest, Playwright, Payload and the E2E admin seeder.
+- [x] Payload selects `TEST_DATABASE_URL` only in an explicitly activated test runtime; normal development and production continue to use `DATABASE_URL`.
+- [x] Test startup rejects missing, malformed, placeholder, production-environment, exact-match and same-endpoint pooled/direct database configurations.
+- [x] Playwright starts its own guarded dev server and cannot reuse a normal development server.
+- [x] Added focused guard tests and documented isolated Neon branch setup in `.env.example` and `README.md`.
+- [x] Guard verification: 6 focused tests pass; unconfigured `npm run test:int` and Playwright config loading both abort before Payload startup with the explicit missing-`TEST_DATABASE_URL` safety error.
+- [x] Quality verification: lint and TypeScript pass. Production build passes with Neon network access; its sandboxed attempt compiled but could not reach the configured normal database during prerender.
+- [ ] Full DB-backed integration/E2E execution awaits an owner-configured isolated `TEST_DATABASE_URL`; no normal database was used as a fallback.
+
 ## In progress
 ### Context branch / review
 - [ ] Review context files for final wording.

@@ -1,5 +1,6 @@
 import { getPayload } from 'payload'
 import config from '../../src/payload.config.js'
+import { assertTestEnvironment } from '../../src/lib/test-environment.js'
 
 export const testUser = {
   email: 'dev@payloadcms.com',
@@ -11,6 +12,7 @@ export const testUser = {
  * Seeds a test user for e2e admin tests.
  */
 export async function seedTestUser(): Promise<void> {
+  assertTestEnvironment()
   const payload = await getPayload({ config })
 
   // Delete existing test user if any
@@ -34,6 +36,7 @@ export async function seedTestUser(): Promise<void> {
  * Cleans up test user after tests
  */
 export async function cleanupTestUser(): Promise<void> {
+  assertTestEnvironment()
   const payload = await getPayload({ config })
 
   await payload.delete({

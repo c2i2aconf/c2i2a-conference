@@ -34,6 +34,7 @@ When no user exists, Payload prompts for the first account. Assign the `admin` r
 | Variable                 | Required   | Purpose                                                                                       |
 | ------------------------ | ---------- | --------------------------------------------------------------------------------------------- |
 | `DATABASE_URL`           | Yes        | Pooled Neon Postgres connection string                                                        |
+| `TEST_DATABASE_URL`      | For tests  | Direct connection string for a separate, disposable test database or Neon branch              |
 | `PAYLOAD_SECRET`         | Yes        | Payload signing/encryption secret and privacy-preserving IP hash key                          |
 | `NEXT_PUBLIC_SERVER_URL` | Production | Trusted canonical origin used in links, metadata, and email; set to the production Vercel URL |
 | `BLOB_READ_WRITE_TOKEN`  | Production | Private Vercel Blob store token                                                               |
@@ -42,6 +43,21 @@ When no user exists, Payload prompts for the first account. Assign the `admin` r
 | `EMAIL_FROM_NAME`        | Optional   | Human-readable sender name                                                                    |
 
 Never put credentials in the Git remote URL or commit `.env` files.
+
+### Isolated test database
+
+Integration and Playwright tests mutate database records, so they require an explicit
+`TEST_DATABASE_URL`; they never fall back to `DATABASE_URL`. To configure Neon safely:
+
+1. In the Neon Console, create a dedicated branch such as `conference-tests` from the branch whose schema you want to test. A Neon branch has its own endpoint and writes are isolated from its parent.
+2. Open **Connect** for `conference-tests`, disable connection pooling, and copy that branch's direct connection string into `TEST_DATABASE_URL` in your untracked `.env` file. The direct URL also works for the one-time migration step below.
+3. Keep `DATABASE_URL` pointed at the normal development database. The two variables must identify different Neon endpoints/databases.
+4. Apply the committed Payload migrations to the test branch before the first run. In PowerShell, run `$env:PAYLOAD_TEST_ENV='true'; npm run payload -- migrate; Remove-Item Env:PAYLOAD_TEST_ENV`. The guard makes this command select `TEST_DATABASE_URL` and abort if it is unsafe.
+5. Run `npm run test:int` or `npm run test:e2e`. The runners set the test marker themselves; do not add `PAYLOAD_TEST_ENV` permanently to `.env`.
+
+For a terminal-first Neon workflow, the equivalent branch operations are `neon branches create --name conference-tests` and `neon connection-string conference-tests`. Prefer a schema-only or sanitized parent when production data contains personal information.
+
+Test startup fails before Payload connects when the test URL is missing, malformed, equal to `DATABASE_URL`, resolves to the same host/database through a pooled versus direct URL, contains example placeholders, or runs under a Vercel production environment. Playwright also refuses to reuse an existing development server.
 
 ## Commands
 
