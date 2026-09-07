@@ -14,7 +14,7 @@ All organization, contact, navigation, edition, program, and page content is man
 | CMS          | Payload CMS 3 at `/admin`, REST at `/api`, GraphQL at `/api/graphql` |
 | Data         | Neon Postgres with committed Payload migrations                      |
 | Files        | Private Vercel Blob objects served through Payload access control    |
-| UI           | Tailwind CSS v4, shadcn/ui, Framer Motion                            |
+| UI           | Tailwind CSS v4, shadcn/ui, lightweight in-house motion utilities    |
 | Localization | next-intl (`fr` default, `en` fallback to French content)            |
 | Email        | Resend and reusable React Email templates                            |
 | Tests        | Vitest integration tests and Playwright browser tests                |
@@ -62,7 +62,7 @@ Never put credentials in the Git remote URL or commit `.env` files.
 ## Security and workflow model
 
 - Public magic links are only for `author` and `attendee` accounts. Admins, editors, and reviewers use Payload password login.
-- Magic-link tokens are hashed, single-use, expire after 30 minutes, and are consumed atomically. Requests are non-enumerating and limited to three per email per 15 minutes and twenty per hashed client IP per hour.
+- Magic-link tokens are hashed, single-use, and consumed atomically. Login links expire after 30 minutes; links created with registration confirmations expire after seven days. Requests are non-enumerating and limited to three per email per 15 minutes and twenty per hashed client IP per hour.
 - Portal authentication signs Payload-compatible JWT cookies and never creates, replaces, or rotates a user password.
 - The admin panel is limited to administrators, editors, and reviewers. User records are visible to administrators or their owner, and only administrators can assign roles.
 - Submissions require an authenticated portal account and an enabled edition whose deadline is still in the future. Both the page and server action enforce that rule.
