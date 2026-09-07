@@ -39,6 +39,17 @@
 - [x] `context/current-ticket.md`
 - [x] `context/progress-tracker.md`
 
+### Repository cleanup — 2026-09-08
+- [x] Audited tracked source, components, imports, dependencies, configuration, documentation, generated files and ignored local artifacts.
+- [x] Removed duplicated nested VS Code configuration and completed `.zcode` session plans; added ignore rules to prevent recurrence.
+- [x] Removed the unused `isAuthenticated` access helper after confirming it had no consumers.
+- [x] Removed the unused `@testing-library/react` development dependency and its lockfile entry.
+- [x] Consolidated `.gitignore` entries while explicitly preserving `.env.example`.
+- [x] Removed an inert Playwright template line and corrected stale README references to Framer Motion and magic-link lifetimes.
+- [x] Cleared ignored Next.js, Playwright and browser-tooling build artifacts before verification.
+- [x] Verification: lint, TypeScript and production build pass. The 10 database-independent integration tests pass; two database-backed suites cannot start because the configured remote Neon database is unreachable and is not identified as an isolated test database, so they were not retried outside the sandbox.
+- [x] Intentionally kept uncertain tooling/configuration candidates (`opencode.json`, `.yarnrc`, the `devsafe` script, `@payloadcms/ui`, Payload `custom.scss`) for a separate owner-confirmed cleanup.
+
 ## In progress
 ### Context branch / review
 - [ ] Review context files for final wording.

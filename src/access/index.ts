@@ -3,9 +3,6 @@ import type { Access, FieldAccess } from 'payload'
 /** Public access — used for content displayed on the site */
 export const anyone: Access = () => true
 
-/** Any logged-in user */
-export const isAuthenticated: Access = ({ req: { user } }) => Boolean(user)
-
 /** Portal workflows accept authors/attendees; admins may act on their behalf. */
 export const isPortalUserOrAdmin: Access = ({ req: { user } }) =>
   user?.role === 'author' || user?.role === 'attendee' || user?.role === 'admin'
