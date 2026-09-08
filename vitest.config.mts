@@ -9,7 +9,9 @@ loadAndActivateTestEnvironment()
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
-    environment: 'jsdom',
+    environment: 'node',
+    // DB-backed suites share one isolated database and must not race their fixtures.
+    fileParallelism: false,
     setupFiles: ['./vitest.setup.ts'],
     include: ['tests/int/**/*.int.spec.ts'],
     hookTimeout: 120000,

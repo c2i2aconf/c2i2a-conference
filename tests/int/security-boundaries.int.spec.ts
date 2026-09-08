@@ -6,6 +6,8 @@ import { POST as graphqlPost } from '@/app/(payload)/api/graphql/route'
 import { cleanupMagicLinks } from '@/lib/magic-link'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { createMinimalPDFBuffer, createPublishedLiveEdition } from '../helpers/securityFixtures'
+
 let payload: Payload
 let admin: User
 let authorA: User
@@ -22,7 +24,7 @@ const created = {
 }
 
 const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-const pdf = Buffer.from('%PDF-1.7\nsecurity-boundary-test')
+const pdf = createMinimalPDFBuffer()
 
 function api(path: string, init?: RequestInit) {
   return new Request(`http://localhost/api/${path}`, init)
@@ -66,19 +68,9 @@ describe('security boundaries', () => {
     authorA = await createUser('author')
     authorB = await createUser('author')
 
-    const edition = await payload.create({
-      collection: 'editions',
-      data: {
-        year: 300000 + Math.floor(Math.random() * 100000),
-        title: `Open security edition ${suffix}`,
-        startDate: '2099-06-01T00:00:00.000Z',
-        endDate: '2099-06-03T00:00:00.000Z',
-        editionStatus: 'live',
-        submissionsEnabled: true,
-        submissionDeadline: '2099-05-01T00:00:00.000Z',
-      },
-      draft: false,
-      overrideAccess: true,
+    const edition = await createPublishedLiveEdition(payload, {
+      year: 300000 + Math.floor(Math.random() * 100000),
+      title: `Open security edition ${suffix}`,
     })
     openEditionID = edition.id
     created.editions.push(edition.id)
@@ -187,6 +179,7 @@ describe('security boundaries', () => {
       collection: 'users',
       id: authorB.id,
       overrideAccess: true,
+      showHiddenFields: true,
     })
     expect(stillLocked.loginAttempts).toBe(5)
     expect(stillLocked.lockUntil).not.toBeNull()
@@ -212,6 +205,7 @@ describe('security boundaries', () => {
       collection: 'users',
       id: authorB.id,
       overrideAccess: true,
+      showHiddenFields: true,
     })
     expect(unlocked.loginAttempts).toBe(0)
     expect(unlocked.lockUntil).toBeNull()
@@ -261,6 +255,7 @@ describe('security boundaries', () => {
         startDate: '2098-01-01T00:00:00.000Z',
         endDate: '2098-01-02T00:00:00.000Z',
         editionStatus: 'archived',
+        _status: 'published',
       },
       draft: false,
       overrideAccess: true,
@@ -294,6 +289,7 @@ describe('security boundaries', () => {
     const file = await createPDF(authorA)
     const submission = await payload.create({
       collection: 'submissions',
+      depth: 0,
       data: {
         edition: openEditionID,
         author: authorB.id,
