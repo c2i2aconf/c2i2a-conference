@@ -27,6 +27,7 @@ import { Users } from './collections/Users'
 import { SiteSettings } from './globals/SiteSettings'
 import { privateVercelBlobStorage } from './lib/private-vercel-blob'
 import { assertProductionEnvironment, getServerURL } from './lib/server-url'
+import { getPayloadDatabaseUrl } from './lib/test-environment'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -85,7 +86,7 @@ export default buildConfig({
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL || '',
+      connectionString: getPayloadDatabaseUrl(),
     },
     // Schema changes are migration-driven outside interactive local development.
     push: process.env.NODE_ENV === 'development' && process.env.PAYLOAD_DB_PUSH !== 'false',

@@ -1,10 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-import 'dotenv/config'
+import { loadAndActivateTestEnvironment } from './src/lib/test-environment'
+
+loadAndActivateTestEnvironment()
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -31,8 +29,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'cross-env PAYLOAD_DB_PUSH=false npm run dev',
-    reuseExistingServer: true,
+    command: 'cross-env PAYLOAD_TEST_ENV=true PAYLOAD_DB_PUSH=false npm run dev',
+    // Never attach browser tests to a normal development server on this port.
+    reuseExistingServer: false,
     url: 'http://localhost:3000',
   },
 })

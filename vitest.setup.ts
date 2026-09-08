@@ -1,4 +1,4 @@
-// Any setup scripts you might need go here
+import { loadAndActivateTestEnvironment } from './src/lib/test-environment'
 
-// Load .env files
-import 'dotenv/config'
+// Re-assert in every worker before any test module can import Payload.
+loadAndActivateTestEnvironment()
