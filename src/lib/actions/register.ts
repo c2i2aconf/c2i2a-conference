@@ -64,6 +64,8 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
         edition: edition.id,
         status: 'confirmed',
       },
+      overrideAccess: false,
+      user,
     })
 
     // The confirmation email carries a single-use sign-in link so registrants

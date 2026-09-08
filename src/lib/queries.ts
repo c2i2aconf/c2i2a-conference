@@ -29,21 +29,19 @@ async function logQueryFailure(context: string, error: unknown) {
  * wrapped in React `cache()` so each is fetched once per request no matter
  * how many components ask for it.
  */
-export const getSiteSettings = cache(
-  async (locale: 'fr' | 'en'): Promise<SiteSetting | null> => {
-    try {
-      const payload = await getCachedPayload()
-      return await payload.findGlobal({
-        slug: 'site-settings',
-        locale,
-        fallbackLocale: 'fr',
-      })
-    } catch (error) {
-      logQueryFailure('Failed to fetch site settings', error)
-      return null
-    }
-  },
-)
+export const getSiteSettings = cache(async (locale: 'fr' | 'en'): Promise<SiteSetting | null> => {
+  try {
+    const payload = await getCachedPayload()
+    return await payload.findGlobal({
+      slug: 'site-settings',
+      locale,
+      fallbackLocale: 'fr',
+    })
+  } catch (error) {
+    logQueryFailure('Failed to fetch site settings', error)
+    return null
+  }
+})
 
 export const getLiveEdition = cache(async (locale: 'fr' | 'en'): Promise<Edition | null> => {
   try {
@@ -52,6 +50,7 @@ export const getLiveEdition = cache(async (locale: 'fr' | 'en'): Promise<Edition
       collection: 'editions',
       locale,
       fallbackLocale: 'fr',
+      overrideAccess: false,
       where: {
         editionStatus: {
           equals: 'live',
@@ -76,6 +75,7 @@ export const getEditionByYear = cache(
         collection: 'editions',
         locale,
         fallbackLocale: 'fr',
+        overrideAccess: false,
         where: {
           year: {
             equals: year,
@@ -98,6 +98,7 @@ export async function getArchivedEditions(locale: 'fr' | 'en'): Promise<Edition[
       collection: 'editions',
       locale,
       fallbackLocale: 'fr',
+      overrideAccess: false,
       where: {
         editionStatus: {
           equals: 'archived',
@@ -285,6 +286,7 @@ export async function getPageBySlug(
       collection: 'pages',
       locale,
       fallbackLocale: 'fr',
+      overrideAccess: false,
       where: {
         and: [
           {
@@ -309,13 +311,17 @@ export async function getPageBySlug(
 }
 
 export const getNavigationPages = cache(
-  async (editionId: number, locale: 'fr' | 'en'): Promise<Pick<Page, 'id' | 'title' | 'slug'>[]> => {
+  async (
+    editionId: number,
+    locale: 'fr' | 'en',
+  ): Promise<Pick<Page, 'id' | 'title' | 'slug'>[]> => {
     try {
       const payload = await getCachedPayload()
       const { docs } = await payload.find({
         collection: 'pages',
         locale,
         fallbackLocale: 'fr',
+        overrideAccess: false,
         where: {
           and: [{ edition: { equals: editionId } }, { showInNav: { equals: true } }],
         },

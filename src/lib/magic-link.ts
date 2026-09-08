@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { getPayload } from 'payload'
+import { getPayload, type Payload } from 'payload'
 
 import configPromise from '@payload-config'
 import type { User } from '@/payload-types'
@@ -10,6 +10,24 @@ import { isPortalRole } from '@/lib/workflow-policy'
 export const LOGIN_LINK_TTL_MINUTES = 30
 /** Registration emails may be opened days later, so their link lives a week. */
 export const REGISTRATION_LINK_TTL_MINUTES = 7 * 24 * 60
+/** Consumed links are retained briefly for troubleshooting, then removed. */
+export const CONSUMED_LINK_RETENTION_MS = 24 * 60 * 60_000
+
+/** Remove expired links and consumed links past their explicit retention period. */
+export async function cleanupMagicLinks(payload: Payload, now = Date.now()) {
+  await payload.delete({
+    collection: 'magic-links',
+    where: { expiresAt: { less_than: new Date(now).toISOString() } },
+    overrideAccess: true,
+  })
+  await payload.delete({
+    collection: 'magic-links',
+    where: {
+      consumedAt: { less_than: new Date(now - CONSUMED_LINK_RETENTION_MS).toISOString() },
+    },
+    overrideAccess: true,
+  })
+}
 
 /** Best-effort client address, used only as input to one-way throttling hashes. */
 export function clientAddressFromHeaders(requestHeaders: Headers): string {

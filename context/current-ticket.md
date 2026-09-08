@@ -1,14 +1,31 @@
-# Current Ticket — Foundation + Real Conference Data Preparation
+# Current Ticket — Security Hardening
 
 ## Status
-**IN PROGRESS — context foundation created; website/data update not yet implemented**
+
+**IN PROGRESS — implementation complete; awaiting review and DB-backed verification**
 
 ## Objective
-Prepare the repository for efficient AI-assisted work and make the next implementation milestone focused on turning the existing site into a credible, real conference platform using authoritative 2025 historical data and the supplied ICAIA'27 argumentaire.
+
+Harden dependency, draft, registration, submission/file, and magic-link boundaries without redesigning the site or changing conference data.
+
+This active ticket supersedes the broader data-import milestone below. No 2025/2027 data import, redesign, or 2024 archive modification is authorized in this ticket.
+
+## Active acceptance criteria
+
+- Patch the compatible Next.js, React/React DOM/RSC, Sharp, and test-tool dependency vulnerabilities; mitigate any current Payload advisory without an available release.
+- Deny anonymous/portal draft and version reads for `editions` and `pages` across REST, GraphQL, frontend queries, and access-respecting Local API calls while preserving admin/editor draft access.
+- Enforce registration normalization, valid input, published-live-edition targeting, protected server-owned fields, and duplicate checks at the collection boundary.
+- Enforce authenticated ownership, an open published-live submission window, protected workflow fields, PDF validation, and private file access at the collection boundary.
+- Clean magic links by `expiresAt`, retaining unconsumed seven-day registration links beyond 24 hours and applying an explicit 24-hour retention policy to consumed links.
+- Add adversarial integration coverage and require `TEST_DATABASE_URL` for DB-backed integration/E2E execution.
+- Run lint, TypeScript, integration tests, E2E, and build; report any test-database block without bypassing it.
 
 ## Immediate deliverables
+
 ### A. Context system
+
 Create and maintain:
+
 - `context/ai-workflow-rules.md`
 - `context/attendy-ui-specification.md`
 - `context/code-standards.md`
@@ -19,11 +36,13 @@ Create and maintain:
 - `context/technical-architecture.md`
 
 ### B. Next implementation milestone
+
 Do **not** start a broad redesign yet. The next code ticket should be:
 
 **“Teacher/demo readiness: harden critical boundaries and import the real 2025 edition.”**
 
 Recommended order:
+
 1. dependency security update
 2. fix public draft access
 3. move workflow invariants to Payload boundary / close direct API bypasses
@@ -33,10 +52,13 @@ Recommended order:
 7. polish visible archive/current-edition experience for the demo
 
 ## 2025 authoritative source
+
 Primary supplied historical source:
+
 - `https://icaia25.sciencesconf.org/`
 
 Verified from the official source currently accessible:
+
 - theme/title: **Intelligence Artificielle et ses Applications : IA pour un développement durable et inclusif**
 - abstract deadline: **1 September 2025**
 - acceptance notification: **25 September 2025**
@@ -46,14 +68,17 @@ Verified from the official source currently accessible:
 Additional pages (programme, description, submission, committees, partners, gallery, contact) should be imported only where the official source can be retrieved/verified. Missing facts must remain missing rather than invented.
 
 Secondary historical source supplied:
+
 - `https://c2i2a.sciencesconf.org/`
 
 ## ICAIA'27 source
+
 Uploaded organizer document: `Argumentaire_ICAIA27_V1.docx`.
 
 Use it as the primary source for the future 2027 edition model/content.
 
 Key source requirements already captured in `project_overview.md`:
+
 - 15 thematic axes
 - multiple contribution types
 - FR/EN/AR manuscripts
@@ -67,15 +92,20 @@ Key source requirements already captured in `project_overview.md`:
 - national/international partners and partner journals
 
 ## Blockers / decisions needed
+
 ### 1. ICAIA'27 date conflict — MUST CONFIRM
+
 The supplied argumentaire contains two different event dates:
+
 - cover poster: **22 May 2027**
 - narrative + detailed calendar: **15 May 2027**
 
 Do not publish a final 2027 date or countdown until confirmed.
 
 ### 2. 2027 website naming
+
 Need organizer decision on primary public brand:
+
 - C2I2A
 - ICAIA'27
 - or C2I2A as platform / ICAIA as edition brand
@@ -83,7 +113,9 @@ Need organizer decision on primary public brand:
 Current source document uses ICAIA'27 prominently.
 
 ### 3. Scope for teacher handoff
+
 Before implementing the full 2027 workflow, decide whether the teacher demo requires:
+
 - historical 2025 archive only
 - a 2027 preview/call-for-papers page
 - working submission workflow aligned to 2027 rules
@@ -92,6 +124,7 @@ Before implementing the full 2027 workflow, decide whether the teacher demo requ
 Default recommendation: **secure foundation + 2025 archive + accurate 2027 preview**, then expand workflow after the demo unless the teacher explicitly expects it.
 
 ## Acceptance criteria for the next code ticket
+
 - No known critical dependency advisory remains unaddressed in the deployed stack.
 - Anonymous users cannot retrieve Payload drafts.
 - Direct Payload API calls cannot bypass registration/submission business invariants covered by the ticket.
@@ -104,6 +137,7 @@ Default recommendation: **secure foundation + 2025 archive + accurate 2027 previ
 - `progress-tracker.md` is updated.
 
 ## Out of scope until explicitly promoted
+
 - payment gateway
 - automated visa invitation letters
 - full multi-reviewer assignment/scoring UI
@@ -113,6 +147,7 @@ Default recommendation: **secure foundation + 2025 archive + accurate 2027 previ
 - full 2027 production launch
 
 ## Handoff instruction for the next AI session
+
 Use this exact prompt:
 
 > Read `AGENTS.md` and all files in `context/`. Work on `context/current-ticket.md`. First inspect the code relevant to P0/P1 hardening and the 2025 import. Give me a short plan grouped into security, data import, and demo polish. Do not implement 2027 workflow expansion yet unless I explicitly approve it.

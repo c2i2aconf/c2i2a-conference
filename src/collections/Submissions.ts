@@ -1,6 +1,7 @@
-import type { CollectionConfig } from 'payload'
+import { APIError, type CollectionConfig } from 'payload'
 import { submissionDecisionEmail } from '@/emails/templates'
 import { shouldSendDecisionEmail } from '@/lib/workflow-policy'
+import { relationshipID, requireOpenSubmissionEdition } from '@/lib/workflow-boundary'
 
 import {
   isAdmin,
@@ -104,11 +105,46 @@ export const Submissions: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      ({ data, req, operation }) => {
-        if (operation === 'create' && req.user && req.user.role !== 'admin') {
-          return { ...data, author: req.user.id }
+      async ({ data, req, operation }) => {
+        if (operation !== 'create' || !data) return data
+        const title = typeof data.title === 'string' ? data.title.trim() : data.title
+        const abstract = typeof data.abstract === 'string' ? data.abstract.trim() : data.abstract
+        if (!title || !abstract) {
+          throw new APIError('A title and abstract are required.', 400, undefined, true)
         }
-        return data
+        await requireOpenSubmissionEdition(req, data.edition)
+
+        if (req.user && req.user.role !== 'admin') {
+          const fileID = relationshipID(data.file)
+          if (fileID === null) {
+            throw new APIError('A valid submission file is required.', 400, undefined, true)
+          }
+          const file = await req.payload.findByID({
+            collection: 'submission-files',
+            id: fileID,
+            depth: 0,
+            overrideAccess: false,
+            req,
+            user: req.user,
+          })
+          if (relationshipID(file.author) !== req.user.id) {
+            throw new APIError(
+              'The submission file must belong to the author.',
+              403,
+              undefined,
+              true,
+            )
+          }
+          return {
+            ...data,
+            abstract,
+            author: req.user.id,
+            reviewNotes: undefined,
+            status: 'pending',
+            title,
+          }
+        }
+        return { ...data, abstract, title }
       },
     ],
     afterChange: [
