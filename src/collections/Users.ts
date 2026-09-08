@@ -14,6 +14,7 @@ export const Users: CollectionConfig = {
     // First user can be created via /admin/create-first-user; afterwards only admins create users
     create: isAdmin,
     read: isAdminOrOwnUser,
+    unlock: isAdmin,
     update: isAdminOrOwnUser,
     delete: isAdmin,
   },

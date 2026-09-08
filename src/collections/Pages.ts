@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { anyone, isAdmin, isAdminOrEditor } from '../access'
+import { isAdmin, isAdminOrEditor, publishedOrAdminEditor } from '../access'
 import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
 
 /**
@@ -19,7 +19,8 @@ export const Pages: CollectionConfig = {
     afterDelete: [revalidateSiteAfterDelete],
   },
   access: {
-    read: anyone,
+    read: publishedOrAdminEditor,
+    readVersions: isAdminOrEditor,
     create: isAdminOrEditor,
     update: isAdminOrEditor,
     delete: isAdmin,

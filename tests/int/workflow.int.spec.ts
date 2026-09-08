@@ -4,6 +4,7 @@ import { canAccessAdmin, isAdminOrOwnUser, isAdminOrReviewerField } from '@/acce
 import { Registrations } from '@/collections/Registrations'
 import { SubmissionFiles } from '@/collections/SubmissionFiles'
 import { Submissions } from '@/collections/Submissions'
+import { Users } from '@/collections/Users'
 import {
   hasPdfSignature,
   isPortalRole,
@@ -73,6 +74,11 @@ describe('Payload access and ownership hooks', () => {
     expect(canAccessAdmin(req({ id: 3, role: 'author' }))).toBe(false)
   })
 
+  it('restricts account unlocks to admins while Payload remains unpatched upstream', async () => {
+    expect(await Users.access?.unlock?.(req({ id: 1, role: 'admin' }))).toBe(true)
+    expect(await Users.access?.unlock?.(req({ id: 2, role: 'author' }))).toBe(false)
+  })
+
   it('limits user documents to self unless the requester is an admin', () => {
     expect(isAdminOrOwnUser(req({ id: 9, role: 'author' }))).toEqual({
       id: { equals: 9 },
@@ -89,10 +95,42 @@ describe('Payload access and ownership hooks', () => {
     const hookArgs = {
       data: { author: 999, title: 'Paper' },
       operation: 'create',
-      req: { user: { id: 7, role: 'author' } },
-    } as never
-    expect(await submissionHook!(hookArgs)).toMatchObject({ author: 7 })
-    expect(await uploadHook!(hookArgs)).toMatchObject({ author: 7 })
+      req: {
+        file: {
+          data: Buffer.from('%PDF-1.7'),
+          mimetype: 'application/pdf',
+          name: 'paper.pdf',
+          size: 8,
+        },
+        payload: {
+          find: async () => ({ totalDocs: 1 }),
+          findByID: async ({ collection }: { collection: string }) =>
+            collection === 'editions'
+              ? {
+                  id: 3,
+                  _status: 'published',
+                  editionStatus: 'live',
+                  submissionsEnabled: true,
+                  submissionDeadline: '2099-01-01T00:00:00.000Z',
+                }
+              : { id: 5, author: 7 },
+        },
+        user: { id: 7, role: 'author' },
+      },
+    }
+    expect(
+      await submissionHook!({
+        ...hookArgs,
+        data: {
+          abstract: 'Abstract',
+          author: 999,
+          edition: 3,
+          file: 5,
+          title: 'Paper',
+        },
+      } as never),
+    ).toMatchObject({ author: 7, status: 'pending' })
+    expect(await uploadHook!(hookArgs as never)).toMatchObject({ author: 7 })
   })
 
   it('allows reviewers to edit decisions but not paper content', async () => {
@@ -111,9 +149,23 @@ describe('Payload access and ownership hooks', () => {
   it('only auto-links a registration when the authenticated email matches', async () => {
     const hook = Registrations.hooks?.beforeValidate?.[0]
     const result = await hook!({
-      data: { email: 'Person@Example.com', user: 99, status: 'cancelled', checkedIn: true },
+      data: {
+        edition: 3,
+        email: 'Person@Example.com',
+        firstName: 'Person',
+        lastName: 'Example',
+        user: 99,
+        status: 'cancelled',
+        checkedIn: true,
+      },
       operation: 'create',
-      req: { user: { id: 4, role: 'attendee', email: 'person@example.com' } },
+      req: {
+        payload: {
+          find: async () => ({ totalDocs: 0 }),
+          findByID: async () => ({ id: 3, _status: 'published', editionStatus: 'live' }),
+        },
+        user: { id: 4, role: 'attendee', email: 'person@example.com' },
+      },
     } as never)
     expect(result).toMatchObject({ email: 'person@example.com', user: 4, status: 'confirmed' })
   })

@@ -2,6 +2,7 @@ import { config as loadEnvironmentFile } from 'dotenv'
 
 const TEST_ENVIRONMENT_FLAG = 'PAYLOAD_TEST_ENV'
 const ERROR_PREFIX = 'Unsafe test database configuration:'
+const TEST_PAYLOAD_SECRET = 'test-only-payload-secret-for-isolated-database-runs'
 
 type Environment = Record<string, string | undefined>
 
@@ -97,7 +98,10 @@ export function loadAndActivateTestEnvironment(): string {
   loadEnvironmentFile({ path: '.env.local' })
   loadEnvironmentFile({ path: '.env' })
   process.env[TEST_ENVIRONMENT_FLAG] = 'true'
-  return assertSafeTestDatabase()
+  const testDatabaseUrl = assertSafeTestDatabase()
+  // Test authentication must never depend on or expose a production signing secret.
+  process.env.PAYLOAD_SECRET = TEST_PAYLOAD_SECRET
+  return testDatabaseUrl
 }
 
 export function assertTestEnvironment(environment: Environment = process.env): string {

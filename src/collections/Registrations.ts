@@ -1,7 +1,8 @@
-import type { CollectionConfig } from 'payload'
+import { APIError, type CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrSelf } from '../access'
 import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
+import { requireLiveEdition } from '../lib/workflow-boundary'
 
 /**
  * Free attendee registrations.
@@ -90,14 +91,67 @@ export const Registrations: CollectionConfig = {
     afterChange: [revalidateSiteAfterChange],
     afterDelete: [revalidateSiteAfterDelete],
     beforeValidate: [
-      ({ data, req, operation }) => {
+      async ({ data, req, operation }) => {
         if (operation !== 'create' || !data) return data
         const email = typeof data.email === 'string' ? data.email.trim().toLowerCase() : data.email
-        if (req.user?.role === 'admin') return { ...data, email }
+        const firstName =
+          typeof data.firstName === 'string' ? data.firstName.trim() : data.firstName
+        const lastName = typeof data.lastName === 'string' ? data.lastName.trim() : data.lastName
+        const affiliation =
+          typeof data.affiliation === 'string' ? data.affiliation.trim() : data.affiliation
+        const country = typeof data.country === 'string' ? data.country.trim() : data.country
+        if (
+          !firstName ||
+          !lastName ||
+          typeof email !== 'string' ||
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ) {
+          throw new APIError(
+            'First name, last name, and a valid email are required.',
+            400,
+            undefined,
+            true,
+          )
+        }
+        const edition = await requireLiveEdition(req, data.edition)
+        const duplicate = await req.payload.find({
+          collection: 'registrations',
+          depth: 0,
+          limit: 1,
+          overrideAccess: true,
+          req,
+          where: {
+            and: [{ email: { equals: email } }, { edition: { equals: edition.id } }],
+          },
+        })
+        if (duplicate.totalDocs > 0) {
+          throw new APIError(
+            'This email is already registered for the edition.',
+            409,
+            undefined,
+            true,
+          )
+        }
+
+        const normalized = {
+          ...data,
+          affiliation,
+          country,
+          edition: edition.id,
+          email,
+          firstName,
+          lastName,
+        }
+        if (req.user?.role === 'admin') return normalized
         const currentUser = req.user
         const user =
           currentUser && currentUser.email.toLowerCase() === email ? currentUser.id : undefined
-        return { ...data, email, user, status: 'confirmed', checkedIn: false }
+        return {
+          ...normalized,
+          user,
+          status: 'confirmed',
+          checkedIn: false,
+        }
       },
     ],
   },

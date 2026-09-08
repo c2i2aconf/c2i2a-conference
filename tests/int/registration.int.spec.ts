@@ -2,6 +2,8 @@ import { getPayload, Payload } from 'payload'
 import config from '@/payload.config'
 import { describe, it, beforeAll, afterAll, expect, vi } from 'vitest'
 
+import { createPublishedLiveEdition } from '../helpers/securityFixtures'
+
 // registerAction reads request headers for optional user linking
 vi.mock('next/headers', () => ({
   headers: async () => new Headers(),
@@ -30,26 +32,11 @@ describe('anonymous registration', () => {
     // never send real email from tests
     vi.spyOn(payload, 'sendEmail').mockResolvedValue(undefined)
 
-    const { docs } = await payload.find({
-      collection: 'editions',
-      where: { editionStatus: { equals: 'live' } },
-      limit: 1,
-      overrideAccess: true,
+    const edition = await createPublishedLiveEdition(payload, {
+      year: 200000 + Math.floor(Math.random() * 100000),
+      title: 'Integration test edition',
     })
-    if (docs.length === 0) {
-      const edition = await payload.create({
-        collection: 'editions',
-        data: {
-          year: 2099,
-          title: 'Integration test edition',
-          startDate: '2099-06-01T00:00:00Z',
-          endDate: '2099-06-03T00:00:00Z',
-          editionStatus: 'live',
-        },
-        overrideAccess: true,
-      })
-      createdEditionId = edition.id
-    }
+    createdEditionId = edition.id
   })
 
   it('registers an anonymous visitor and rejects duplicate emails', async () => {

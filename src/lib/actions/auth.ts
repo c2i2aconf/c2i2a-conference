@@ -9,6 +9,7 @@ import { magicLinkEmail } from '@/emails/templates'
 import {
   LOGIN_LINK_TTL_MINUTES,
   clientAddressFromHeaders,
+  cleanupMagicLinks,
   createMagicLinkUrl,
   ensurePortalUser,
 } from '@/lib/magic-link'
@@ -76,11 +77,7 @@ export async function requestMagicLink(
       return { success: true }
     }
 
-    await payload.delete({
-      collection: 'magic-links',
-      where: { createdAt: { less_than: new Date(now - 24 * 60 * 60_000).toISOString() } },
-      overrideAccess: true,
-    })
+    await cleanupMagicLinks(payload, now)
 
     // Elevated CMS users keep password-only admin authentication.
     const user = await ensurePortalUser(email, 'author')
