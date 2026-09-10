@@ -195,6 +195,7 @@
     "title": "Past editions",
     "subtitle": "The history of the C2I2A conference, year after year",
     "viewEdition": "View edition",
+    "importantDates": "Important dates",
     "empty": "No archive available.",
     "editionLabel": "Archive {year}"
   },

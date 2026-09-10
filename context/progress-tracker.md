@@ -28,7 +28,7 @@
 
 - [x] Reviewed supplied 2025 SciencesConf URL.
 - [x] Verified 2025 theme/title, important dates and HEEC Marrakech venue from the official site.
-- [x] Reviewed supplied historical `c2i2a.sciencesconf.org` link as a secondary archive source.
+- [x] Reviewed supplied historical `c2i2a.sciencesconf.org` link as the authoritative 2024 archive source.
 - [x] Reviewed uploaded `Argumentaire_ICAIA27_V1.docx` and extracted product/workflow requirements.
 - [x] Recorded ICAIA'27 15-axis scientific scope.
 - [x] Recorded real submission requirements, review process, registration fees, committees, partners and key dates.
@@ -68,6 +68,41 @@
 - [ ] Full DB-backed integration/E2E execution awaits an owner-configured isolated `TEST_DATABASE_URL`; no normal database was used as a fallback.
 
 ## In progress
+
+### ICAIA 2025 historical archive import — 2026-09-09
+
+- [x] Re-verified the official SciencesConf identity/theme, abstract deadline (1 Sep 2025), acceptance notification (25 Sep 2025), event date (18 Oct 2025), HEEC Marrakech venue, bilingual description, Prof. Mohammed Youssfi profile, and FST/ENSA partners.
+- [x] Recorded the unresolved official-source conflict: the important-dates page says 18 Oct 2025, while the programme remains dated 21 Jun 2025 and the description references an earlier 7 Jun postponement.
+- [x] Added an idempotent, edition-scoped 2025 import that creates or updates one published archived edition, three important dates, one independently verified speaker, and two partners; submissions remain disabled.
+- [x] Intentionally omitted 2025 sessions and rooms because of the programme-date conflict, and omitted committees/gallery because their official pages contain no records.
+- [x] Added official FR/EN edition, date, description, and speaker content. Partner descriptions use the existing French fallback because the official EN sponsor page retains French copy.
+- [x] Expanded the archive detail page to render the edition description, event date, venue, important dates, verified speakers, and partners, while omitting an empty programme section.
+- [x] Added an integration regression that runs the 2025 import repeatedly and snapshots the 2024 edition dates, important dates, session IDs, speaker IDs, room IDs, and every session-to-room/session-to-speaker relationship before and after.
+- [x] Corrected future creation of the existing 2024 seed to set published status explicitly; the guarded existing-record branch still skips 2024 and never overwrites it.
+- [x] Initialized the isolated `conference-tests` branch with the repository's existing 2024 regression seed and the 2025 import; no production database was mutated.
+- [x] Route verification against `TEST_DATABASE_URL`: `/fr/archive/2024`, `/en/archive/2024`, `/fr/archive/2025`, and `/en/archive/2025` all return HTTP 200 with the expected localized archive content.
+- [x] 2024 regression result: the captured dates, edition/session/speaker/room IDs, and session-to-room/session-to-speaker relationships remain exactly equivalent across repeated 2025 imports; the fixture contains 12 sessions, 12 speakers, and 5 rooms.
+- [x] Verification passes: `npm run lint`, `npx tsc --noEmit`, `npm run test:int` (6 files, 28 tests), `npm run build`, and `git diff --check`.
+- [x] No collection schema changed; Payload types and migrations were not generated.
+- [ ] Owner review is required before commit or push.
+
+### 2024/2025 historical accuracy review — 2026-09-09
+
+- [x] Re-audited both official SciencesConf sites and treated them as authoritative over the legacy seed.
+- [x] Corrected the 2024 venue from Marrakech to EIGSI Casablanca and replaced the generic theme with the official green-hydrogen/AI theme.
+- [x] Replaced the skip-only 2024 seed with an edition-scoped update-or-create importer that explicitly publishes the archived edition and disables submissions.
+- [x] Reconciled all 12 official 2024 programme slots, their times, five rooms, twelve programme speakers, room links, and speaker links. Added the six omitted French parallel-session titles and official localized titles where the English programme supplies them.
+- [x] Added source-backed affiliations for nine 2024 programme speakers and biographies for the two named conference speakers; left unsupported affiliations absent.
+- [x] Reconciled the four French important-date records and their official English labels. Recorded the unresolved localization conflict: FR gives a 27 May extension and 25–30 May acceptance window, while EN gives 30 May for both.
+- [x] Imported the 35-member scientific committee, 14-member organization committee, two junior organization members, and the two official partners.
+- [x] Audited 61 official 2024 gallery files. They remain intentionally absent because the current gallery model requires managed Payload Media uploads and has no durable official-source URL/provenance field; no images or captions were invented.
+- [x] Reconfirmed Prof. Mohammed Youssfi from the official 2025 description (profile, ENSET/Hassan II affiliation, “Prompt Engineering”) and programme (matching plenary). Kept him while continuing to omit the date-conflicted 2025 programme and rooms.
+- [x] Extended the generic archive page to render date ranges/notes, speaker affiliations, and edition committees without hardcoded year-specific facts.
+- [x] Added integration coverage for repeated 2024 and 2025 imports, stable IDs/counts, official localized/fallback content, and absence of cross-edition relationships.
+- [x] Targeted `conference-tests` verification passes: 4 historical archive integration tests.
+- [x] Verified all four archive routes against `conference-tests`; each returns HTTP 200 and contains its own expected edition content.
+- [x] Final verification passes: `npm run lint`, `npx tsc --noEmit`, `npm run test:int` (6 files, 30 tests), `npm run build`, and `git diff --check`.
+- [ ] Owner review is required before commit or push.
 
 ### Security hardening — 2026-09-08
 
