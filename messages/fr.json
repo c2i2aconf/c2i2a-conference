@@ -195,6 +195,7 @@
     "title": "Éditions précédentes",
     "subtitle": "L'historique du colloque C2I2A, année après année",
     "viewEdition": "Voir l'édition",
+    "importantDates": "Dates importantes",
     "empty": "Aucune archive disponible.",
     "editionLabel": "Archive {year}"
   },

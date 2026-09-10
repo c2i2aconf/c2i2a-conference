@@ -1,24 +1,23 @@
-# Current Ticket — Security Hardening
+# Current Ticket — 2024/2025 Historical Accuracy Review
 
 ## Status
 
-**IN PROGRESS — implementation complete; awaiting review and DB-backed verification**
+**IMPLEMENTED — awaiting owner review; not committed**
 
 ## Objective
 
-Harden dependency, draft, registration, submission/file, and magic-link boundaries without redesigning the site or changing conference data.
-
-This active ticket supersedes the broader data-import milestone below. No 2025/2027 data import, redesign, or 2024 archive modification is authorized in this ticket.
+Reconcile the 2024 and 2025 archives against their official SciencesConf sites. Official historical content takes precedence over legacy seed values, while every record and relationship remains edition-scoped and idempotent.
 
 ## Active acceptance criteria
 
-- Patch the compatible Next.js, React/React DOM/RSC, Sharp, and test-tool dependency vulnerabilities; mitigate any current Payload advisory without an available release.
-- Deny anonymous/portal draft and version reads for `editions` and `pages` across REST, GraphQL, frontend queries, and access-respecting Local API calls while preserving admin/editor draft access.
-- Enforce registration normalization, valid input, published-live-edition targeting, protected server-owned fields, and duplicate checks at the collection boundary.
-- Enforce authenticated ownership, an open published-live submission window, protected workflow fields, PDF validation, and private file access at the collection boundary.
-- Clean magic links by `expiresAt`, retaining unconsumed seven-day registration links beyond 24 hours and applying an explicit 24-hour retention policy to consumed links.
-- Add adversarial integration coverage and require `TEST_DATABASE_URL` for DB-backed integration/E2E execution.
-- Run lint, TypeScript, integration tests, E2E, and build; report any test-database block without bypassing it.
+- Correct and publish the 2024 archive from `c2i2a.sciencesconf.org`, including its Casablanca venue, theme, programme titles, affiliations, committees, and partners.
+- Keep one archived, published 2025 edition with official localized identity, event date, venue, description, and important dates.
+- Import speakers, partners, sessions, rooms, committees, and gallery items only when the official source is populated and internally consistent.
+- Keep submissions disabled and do not expose historical calls to action as open.
+- Make both imports idempotent and prevent cross-edition relationships.
+- Preserve FR/EN routing and use official English content where available; use French fallback where the official English page is untranslated.
+- Verify `/fr/archive/2024`, `/en/archive/2024`, `/fr/archive/2025`, and `/en/archive/2025` against the isolated `TEST_DATABASE_URL` where practical.
+- Run lint, TypeScript, integration tests, build, `git diff --check`, and `git status`.
 
 ## Immediate deliverables
 
@@ -67,9 +66,15 @@ Verified from the official source currently accessible:
 
 Additional pages (programme, description, submission, committees, partners, gallery, contact) should be imported only where the official source can be retrieved/verified. Missing facts must remain missing rather than invented.
 
-Secondary historical source supplied:
+Authoritative 2024 historical source:
 
 - `https://c2i2a.sciencesconf.org/`
+
+Verified 2024 facts include the 1 June 2024 event at EIGSI Casablanca, the theme **Hydrogène vert et l’intelligence artificielle : Défis et opportunités**, twelve official programme slots, five rooms, twelve programme speakers, four French important-date records, two committees, and two partners.
+
+The official 2024 French and English important-date pages conflict: the French page gives a 27 May extension and a 25–30 May acceptance window, while the English page gives 30 May for both. The import uses the default French page for the non-localized date fields.
+
+The official 2024 gallery lists 61 image files without captions. They are not imported by this ticket because `gallery-items.image` requires a managed Payload Media upload and the current importer has no durable official-source URL/provenance field or bundled historical asset set. Do not replace those images with invented media.
 
 ## ICAIA'27 source
 
@@ -92,6 +97,10 @@ Key source requirements already captured in `project_overview.md`:
 - national/international partners and partner journals
 
 ## Blockers / decisions needed
+
+### ICAIA 2025 programme date conflict
+
+The official important-dates page identifies **18 October 2025** as the event date, but the official programme remains dated **21 June 2025** and the description still mentions an earlier **7 June 2025** postponement. Programme-derived sessions, rooms, and speaker links must remain unimported until an organizer source resolves which programme actually ran on 18 October.
 
 ### 1. ICAIA'27 date conflict — MUST CONFIRM
 
