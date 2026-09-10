@@ -46,6 +46,17 @@
   },
   "home": {
     "organizedBy": "Organisé par {organization}",
+    "editionNumber": "{number}e édition",
+    "editionLabel": "Édition",
+    "organizersLabel": "Organisateurs",
+    "registrationLabel": "Inscriptions",
+    "registrationOpen": "Inscriptions ouvertes",
+    "registrationPending": "Ouverture prochaine",
+    "callForPapersCta": "Consulter l'appel à communications",
+    "registrationDetailsCta": "Frais et modalités",
+    "axesTitle": "Les axes de l'édition",
+    "axesSubtitle": "{count} axes pour explorer les enjeux du numérique augmenté",
+    "exploreAxes": "Voir les {count, plural, =1 {détails de l'axe} other {# axes thématiques}}",
     "countdownTitle": "Le colloque commence dans",
     "aboutTitle": "À propos du colloque",
     "aboutCta": "Descriptif complet",
@@ -115,7 +126,8 @@
   "committees": {
     "title": "Comités",
     "subtitle": "Les équipes derrière le colloque",
-    "empty": "Les comités seront annoncés prochainement."
+    "empty": "Les comités seront annoncés prochainement.",
+    "committeeLabel": "Comité"
   },
   "gallery": {
     "title": "Galerie photo",
@@ -127,6 +139,9 @@
     "title": "Inscription",
     "subtitle": "Modalités et inscription au colloque",
     "notOpen": "Les inscriptions en ligne ne sont pas encore ouvertes.",
+    "notOpenTitle": "Ouverture prochaine",
+    "participation": "Participer au colloque",
+    "feesSubtitle": "Catégories et tarifs officiels de cette édition",
     "fees": "Frais d'inscription",
     "exempt": "Exonéré",
     "paymentProofRequired": "Un justificatif de paiement est requis.",
@@ -232,7 +247,8 @@
     "followUs": "Suivez-nous",
     "quickLinks": "Liens rapides",
     "rights": "Tous droits réservés",
-    "organizedBy": "Organisé par"
+    "organizedBy": "Organisé par",
+    "information": "Informations pratiques"
   },
   "customPage": {
     "empty": "Ce contenu sera publié prochainement."
@@ -246,6 +262,11 @@
     "title": "Appel à communications",
     "subtitle": "Axes, contributions et modalités de cette édition",
     "axes": "Axes thématiques",
+    "scope": "Champ scientifique",
+    "axesCount": "{count} axes de recherche et d'application",
+    "guidelines": "Consignes aux auteurs",
+    "requirementsTitle": "Préparer une contribution",
+    "requirementsSubtitle": "Formats, langues, évaluation et publication selon les informations officielles de l'édition",
     "contributions": "Types de contributions et langues",
     "submissionLanguages": "Langues de soumission",
     "englishAbstract": "Un résumé en anglais est requis.",

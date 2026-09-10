@@ -15,7 +15,10 @@ export async function Footer() {
   const t = await getTranslations('footer')
   const tNav = await getTranslations('nav')
   const locale = (await getLocale()) as 'fr' | 'en'
-  const [siteSettings, edition] = await Promise.all([getSiteSettings(locale), getLiveEdition(locale)])
+  const [siteSettings, edition] = await Promise.all([
+    getSiteSettings(locale),
+    getLiveEdition(locale),
+  ])
   const customPages = edition ? await getNavigationPages(edition.id, locale) : []
 
   const exploreLinks = [
@@ -38,15 +41,19 @@ export async function Footer() {
     { href: '/contact', label: tNav('contact') },
   ]
   const contactEmail = edition?.contactEmail || siteSettings?.contactEmail
+  const organizerNames = edition?.organizers
+    ?.map(({ name }) => name)
+    .filter(Boolean)
+    .join(' + ')
 
   return (
-    <footer className="w-full border-t bg-muted/30 text-muted-foreground">
+    <footer className="w-full border-t bg-[oklch(0.16_0.04_264)] text-white/70">
       {/* Gold accent line */}
       <div className="h-1 w-full bg-gradient-to-r from-primary via-accent to-primary" aria-hidden />
 
-      <div className="container grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="container grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1.15fr] lg:py-16">
         <div>
-          <p className="font-display text-xl font-bold text-primary">
+          <p className="font-display text-2xl font-bold text-white">
             {siteSettings?.siteName || 'C2I2A'}
             {edition?.year ? <span className="text-accent"> {edition.year}</span> : null}
           </p>
@@ -54,7 +61,9 @@ export async function Footer() {
           {siteSettings?.organizationName ? (
             <p className="mt-3 text-sm">
               {t('organizedBy')}{' '}
-              <strong className="text-foreground">{siteSettings.organizationName}</strong>
+              <strong className="text-white">
+                {organizerNames || siteSettings.organizationName}
+              </strong>
             </p>
           ) : null}
           {siteSettings?.socials && siteSettings.socials.length > 0 && (
@@ -66,7 +75,7 @@ export async function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.platform}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
                 >
                   {getSocialIcon(social.platform)}
                 </a>
@@ -76,13 +85,13 @@ export async function Footer() {
         </div>
 
         <nav aria-label={t('quickLinks')}>
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground">
+          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
             {t('quickLinks')}
           </h3>
           <ul className="space-y-2.5 text-sm">
             {exploreLinks.map(({ href, label }) => (
               <li key={href}>
-                <Link href={href} className="transition-colors hover:text-primary">
+                <Link href={href} className="transition-colors hover:text-accent">
                   {label}
                 </Link>
               </li>
@@ -90,14 +99,14 @@ export async function Footer() {
           </ul>
         </nav>
 
-        <nav aria-label={tNav('registration')}>
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground">
-            {tNav('registration')}
+        <nav aria-label={t('information')}>
+          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
+            {t('information')}
           </h3>
           <ul className="space-y-2.5 text-sm">
             {attendLinks.map(({ href, label }) => (
               <li key={href}>
-                <Link href={href} className="transition-colors hover:text-primary">
+                <Link href={href} className="transition-colors hover:text-accent">
                   {label}
                 </Link>
               </li>
@@ -106,7 +115,7 @@ export async function Footer() {
         </nav>
 
         <div>
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground">
+          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
             {t('contact')}
           </h3>
           <ul className="space-y-2.5 text-sm">
@@ -114,7 +123,7 @@ export async function Footer() {
               <li>
                 <a
                   href={`mailto:${contactEmail}`}
-                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                  className="flex items-center gap-2 transition-colors hover:text-accent"
                 >
                   <Mail className="h-4 w-4 shrink-0" />
                   {contactEmail}
@@ -137,7 +146,7 @@ export async function Footer() {
         </div>
       </div>
 
-      <div className="border-t py-6 text-center text-xs">
+      <div className="border-t border-white/10 py-6 text-center text-xs">
         <p>
           &copy; {new Date().getFullYear()}{' '}
           {siteSettings?.copyrightText || siteSettings?.siteName || 'C2I2A'}. {t('rights')}.

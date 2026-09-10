@@ -22,9 +22,9 @@ export async function Header() {
 
   return (
     <HeaderShell>
-      <div className="container flex h-16 items-center justify-between gap-4">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2.5">
+      <div className="container flex h-[4.5rem] items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-7">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5 rounded-sm focus-visible:outline-none">
             {logo?.url ? (
               <Image
                 src={logo.url}
@@ -34,40 +34,39 @@ export async function Header() {
                 className="h-9 w-9 object-contain"
               />
             ) : (
-              <span className="font-display text-xl font-bold tracking-tight text-primary">
+              <span className="font-display whitespace-nowrap text-xl font-bold tracking-tight text-primary">
                 {settings?.siteName || 'C2I2A'}
+                {edition?.year ? <span className="text-accent">·{edition.year}</span> : null}
               </span>
             )}
           </Link>
-          <nav className="hidden items-center gap-6 lg:flex">
+          <nav className="hidden items-center gap-5 lg:flex" aria-label={t('menu')}>
             <NavLink href="/" exact>
               {t('home')}
             </NavLink>
             <NavLink href="/about">{t('about')}</NavLink>
-            <NavLink href="/call-for-papers">{t('callForPapers')}</NavLink>
             {customPages.map((page) => (
               <NavLink key={page.id} href={`/p/${page.slug}`}>
                 {page.title}
               </NavLink>
             ))}
-            <NavLink href="/program">{t('program')}</NavLink>
             <NavLink href="/dates">{t('dates')}</NavLink>
-            <NavLink href="/speakers">{t('speakers')}</NavLink>
-            <NavLink href="/committees">{t('committees')}</NavLink>
+            <NavLink href="/program">{t('program')}</NavLink>
             <NavLink href="/archive">{t('archive')}</NavLink>
           </nav>
         </div>
 
         <div className="flex items-center gap-2">
-          {edition?.registrationEnabled && (
-            <Button
-              asChild
-              className="hidden bg-accent text-accent-foreground shadow-sm hover:bg-accent/90 md:inline-flex"
-            >
-              <Link href="/registration">{t('registration')}</Link>
-            </Button>
-          )}
-          <UserMenu />
+          <Button
+            asChild
+            size="sm"
+            className="hidden bg-accent text-accent-foreground shadow-sm hover:bg-accent/90 sm:inline-flex"
+          >
+            <Link href="/call-for-papers">{t('callForPapers')}</Link>
+          </Button>
+          <span className="hidden lg:inline-flex">
+            <UserMenu />
+          </span>
           <ThemeToggle />
           <LanguageSwitcher />
           <MobileMenu

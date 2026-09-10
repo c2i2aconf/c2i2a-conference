@@ -18,6 +18,7 @@ import { notFound } from 'next/navigation'
 import { ProgramSchedule } from '@/components/sections/ProgramSchedule'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageHero } from '@/components/sections/PageHero'
+import { SectionHeading } from '@/components/sections/SectionHeading'
 import type { Metadata } from 'next'
 
 type Props = { params: Promise<{ locale: 'fr' | 'en'; year: string }> }
@@ -77,16 +78,16 @@ export default async function ArchiveYearPage({ params }: Props) {
         title={edition.title}
         subtitle={edition.theme || undefined}
       />
-      <div className="container py-12 md:py-24">
-        <section className="mb-16 grid items-start gap-8 lg:grid-cols-[1fr_auto]">
+      <div className="container section-pad">
+        <section className="mb-20 grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
           {edition.description && (
-            <article className="rich-text">
+            <article className="rich-text max-w-3xl">
               <RichText data={edition.description} />
             </article>
           )}
-          <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+          <div className="academic-card flex flex-col divide-y text-sm text-muted-foreground">
             {edition.startDate && (
-              <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2">
+              <span className="inline-flex items-center gap-3 px-5 py-4">
                 <CalendarDays className="h-4 w-4 text-primary" />
                 {formatDate(edition.startDate, locale, {
                   day: 'numeric',
@@ -96,7 +97,7 @@ export default async function ArchiveYearPage({ params }: Props) {
               </span>
             )}
             {edition.venue && (
-              <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2">
+              <span className="inline-flex items-center gap-3 px-5 py-4">
                 <MapPin className="h-4 w-4 text-primary" />
                 {edition.venue}
               </span>
@@ -105,13 +106,11 @@ export default async function ArchiveYearPage({ params }: Props) {
         </section>
 
         {importantDates.length > 0 && (
-          <section className="mb-24">
-            <h2 className="text-3xl font-bold mb-8 border-b pb-4">
-              {tArchive('importantDates')}
-            </h2>
-            <div className="grid gap-4 md:grid-cols-3">
+          <section className="mb-24 border-t pt-16">
+            <SectionHeading align="left" title={tArchive('importantDates')} />
+            <div className="mt-9 grid gap-4 md:grid-cols-3">
               {importantDates.map((item) => (
-                <Card key={item.id}>
+                <Card key={item.id} className="academic-card border-t-4 border-t-accent">
                   <CardContent className="p-5">
                     <p className="font-semibold">{item.label}</p>
                     <p className="mt-2 text-sm text-muted-foreground">
@@ -141,21 +140,23 @@ export default async function ArchiveYearPage({ params }: Props) {
 
         {/* Program */}
         {sessions.length > 0 && (
-          <section className="mb-24">
-            <h2 className="text-3xl font-bold mb-8 border-b pb-4">{t('program')}</h2>
-            <ProgramSchedule sessions={toScheduleSessions(sessions)} />
+          <section className="mb-24 border-t pt-16">
+            <SectionHeading align="left" title={t('program')} />
+            <div className="mt-9">
+              <ProgramSchedule sessions={toScheduleSessions(sessions)} />
+            </div>
           </section>
         )}
 
         {/* Speakers */}
         {speakers.length > 0 && (
-          <section className="mb-24">
-            <h2 className="text-3xl font-bold mb-8 border-b pb-4">{t('speakers')}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <section className="mb-24 border-t pt-16">
+            <SectionHeading align="left" title={t('speakers')} />
+            <div className="mt-9 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
               {speakers.map((speaker) => {
                 const photo = getMediaVariant(speaker.photo, 'card')
                 return (
-                  <Card key={speaker.id} className="text-center overflow-hidden">
+                  <Card key={speaker.id} className="academic-card overflow-hidden py-0 text-center">
                     <div className="aspect-square relative bg-muted">
                       {photo ? (
                         <Image
@@ -185,11 +186,11 @@ export default async function ArchiveYearPage({ params }: Props) {
         )}
 
         {sponsors.length > 0 && (
-          <section className="mb-24">
-            <h2 className="text-3xl font-bold mb-8 border-b pb-4">{t('sponsors')}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <section className="mb-24 border-t pt-16">
+            <SectionHeading align="left" title={t('sponsors')} />
+            <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sponsors.map((sponsor) => (
-                <Card key={sponsor.id}>
+                <Card key={sponsor.id} className="academic-card">
                   <CardContent className="p-5">
                     <h3 className="font-semibold">{sponsor.name}</h3>
                     {sponsor.description && (
@@ -203,15 +204,13 @@ export default async function ArchiveYearPage({ params }: Props) {
         )}
 
         {committees.length > 0 && (
-          <section className="mb-24">
-            <h2 className="text-3xl font-bold mb-8 border-b pb-4">{t('committees')}</h2>
-            <div className="grid gap-8 lg:grid-cols-2">
+          <section className="mb-24 border-t pt-16">
+            <SectionHeading align="left" title={t('committees')} />
+            <div className="mt-9 grid gap-8 lg:grid-cols-2">
               {committees.map((committee) => (
-                <Card key={committee.id}>
+                <Card key={committee.id} className="academic-card">
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold">
-                      {committeeLabels[committee.type]}
-                    </h3>
+                    <h3 className="text-xl font-semibold">{committeeLabels[committee.type]}</h3>
                     <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                       {committee.members?.map((member) => (
                         <li key={member.id} className="text-sm">
@@ -236,14 +235,14 @@ export default async function ArchiveYearPage({ params }: Props) {
 
         {/* Gallery */}
         {gallery.length > 0 && (
-          <section className="mb-24">
-            <h2 className="text-3xl font-bold mb-8 border-b pb-4">{t('gallery')}</h2>
-            <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+          <section className="mb-24 border-t pt-16">
+            <SectionHeading align="left" title={t('gallery')} />
+            <div className="mt-9 columns-2 gap-4 space-y-4 md:columns-3 lg:columns-4">
               {gallery.map((item) => {
                 const image = getMediaVariant(item.image, 'card')
                 if (!image) return null
                 return (
-                  <div key={item.id} className="break-inside-avoid rounded-xl overflow-hidden">
+                  <div key={item.id} className="overflow-hidden rounded-xl break-inside-avoid">
                     <Image
                       src={image.url}
                       alt={item.caption || ''}

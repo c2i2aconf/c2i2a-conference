@@ -240,3 +240,26 @@ If a SciencesConf page is unavailable, do not invent its content. Import the ver
 ## Last handoff summary
 
 The project does not need a rewrite. The next highest-value work is to make the existing foundation safer and populate it with authoritative real conference data. Once that foundation is clean, expand toward the ICAIA'27 real workflow incrementally rather than implementing all new requirements in one pass.
+
+## Teacher/demo public UI polish — 2026-09-10
+
+### Completed
+
+- [x] Audited representative FR/EN public pages visually before changes.
+- [x] Added shared academic presentation utilities, consistent section rhythm, improved page heroes, visible focus treatment, and reduced-motion support.
+- [x] Reworked the homepage around Payload-managed edition identity, third-edition metadata, theme, provisional date, venue, organizers, call-for-papers CTA, registration state, axes, and chronological upcoming dates.
+- [x] Removed zero-value homepage statistics and kept the detailed 15/22 May editorial provenance note off the hero while preserving it on the About page.
+- [x] Improved the 15-axis call-for-papers scan pattern and grouped all existing author/review/publication requirements.
+- [x] Rebuilt important dates as a chronological timeline without adding new status values.
+- [x] Presented disabled registration as an intentional state alongside the five official fee categories and stored participation requirements.
+- [x] Improved committee grouping, contact cards, archive listing/detail presentation, header navigation, mobile drawer, and footer hierarchy.
+- [x] Visually reviewed FR homepage, call for papers, dates, registration, mobile homepage/menu, and EN archive listing.
+- [x] Verified all targeted FR/EN routes, including `/fr|en/archive/2024` and `/fr|en/archive/2025`, returned HTTP 200 against `conference-tests`.
+- [x] Passed 6 integration files / 31 tests, lint, TypeScript, and production build.
+
+### Preserved
+
+- [x] No schema, migration, auth, workflow, registration gate, or conference content changes.
+- [x] No hardcoded edition facts added to React components.
+- [x] 2024 and 2025 remain independent Payload-driven historical archives.
+- [x] No commit or push performed.

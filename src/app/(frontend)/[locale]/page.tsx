@@ -1,24 +1,23 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import Image from 'next/image'
-import { ArrowRight, MapPin } from 'lucide-react'
+import { ArrowRight, BookOpen, Building2, Layers3, LockKeyhole, MapPin } from 'lucide-react'
 import React from 'react'
 import type { Metadata } from 'next'
 
 import { Link } from '@/i18n/navigation'
 import {
-  getEditionStats,
   getGalleryItems,
   getImportantDates,
   getLiveEdition,
   getSpeakers,
   getSponsors,
   getSiteSettings,
+  getThematicAxes,
 } from '@/lib/queries'
 import { getServerURL } from '@/lib/server-url'
 import { formatDate, toDateUTC } from '@/lib/dates'
 import { getMediaUrl, getMediaVariant } from '@/lib/media'
 import { Reveal } from '@/components/motion/Reveal'
-import { AnimatedCounter } from '@/components/motion/AnimatedCounter'
 import { Countdown } from '@/components/sections/Countdown'
 import { ConferenceDateDisplay } from '@/components/sections/ConferenceDateDisplay'
 import { MapEmbed } from '@/components/sections/MapEmbed'
@@ -60,42 +59,30 @@ export default async function HomePage({ params }: Props) {
   const t = await getTranslations({ locale })
   const [edition, settings] = await Promise.all([getLiveEdition(locale), getSiteSettings(locale)])
 
-  const [stats, speakers, dates, sponsors, gallery] = edition
+  const [speakers, dates, sponsors, gallery, axes] = edition
     ? await Promise.all([
-        getEditionStats(edition.id),
         getSpeakers(edition.id, locale),
         getImportantDates(edition.id, locale),
         getSponsors(edition.id, locale),
         getGalleryItems(edition.id, locale),
+        getThematicAxes(edition.id, locale),
       ])
-    : [{ speakers: 0, sessions: 0, attendees: 0 }, [], [], [], []]
+    : [[], [], [], [], []]
 
   const keynotes = speakers.filter((s) => s.isKeynote).slice(0, 4)
-  const upcomingDates = dates.slice(0, 4)
+  const chronologicalDates = [...dates].sort(
+    (a, b) => toDateUTC(a.date).getTime() - toDateUTC(b.date).getTime(),
+  )
+  const futureDates = chronologicalDates.filter((item) => toDateUTC(item.date) >= new Date())
+  const upcomingDates = (futureDates.length > 0 ? futureDates : chronologicalDates).slice(0, 4)
   const heroImage = getMediaVariant(edition?.bannerImage, 'hero')?.url ?? null
-  const days =
-    edition && edition.startDate && edition.endDate
-      ? Math.max(
-          1,
-          Math.round(
-            (new Date(edition.endDate).getTime() - new Date(edition.startDate).getTime()) /
-              86_400_000,
-          ) + 1,
-        )
-      : 0
-  const statItems = [
-    { value: stats.speakers, label: t('home.stats.speakers') },
-    { value: stats.sessions, label: t('home.stats.sessions') },
-    { value: stats.attendees, label: t('home.stats.attendees') },
-    ...(days > 0 ? [{ value: days, label: t('home.stats.days') }] : []),
-  ]
   const organizerLabel =
     edition?.organizers?.map(({ name }) => name).join(' + ') || settings?.organizationName || ''
 
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative isolate flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden px-6 py-24 text-center">
+      <section className="relative isolate flex min-h-[680px] flex-col items-center justify-center overflow-hidden px-5 py-20 text-center sm:px-6 md:min-h-[720px]">
         {heroImage ? (
           <>
             <Image
@@ -117,18 +104,19 @@ export default async function HomePage({ params }: Props) {
         <div aria-hidden className="bg-dots absolute inset-0 -z-10" />
 
         <Reveal>
-          <p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-white/70 sm:text-sm">
-            {t('home.organizedBy', { organization: organizerLabel })}
+          <p className="mb-6 inline-flex rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur-sm sm:text-sm">
+            {edition?.editionNumber
+              ? t('home.editionNumber', { number: edition.editionNumber })
+              : t('home.organizedBy', { organization: organizerLabel })}
           </p>
         </Reveal>
         <Reveal delay={0.1}>
-          <h1 className="font-display text-6xl font-bold tracking-tight text-white sm:text-7xl lg:text-8xl">
-            {settings?.siteName || 'C2I2A'}
-            {edition?.year ? <span className="text-gold-gradient"> {edition.year}</span> : null}
+          <h1 className="font-display max-w-5xl text-5xl font-bold tracking-tight text-balance text-white sm:text-7xl lg:text-8xl">
+            {edition?.title || settings?.siteName || 'C2I2A'}
           </h1>
         </Reveal>
         <Reveal delay={0.2}>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-white/80 sm:text-xl">
+          <p className="mx-auto mt-6 max-w-3xl text-base leading-7 text-pretty text-white/80 sm:text-xl sm:leading-8">
             {edition?.theme ?? t('metadata.description')}
           </p>
         </Reveal>
@@ -145,14 +133,25 @@ export default async function HomePage({ params }: Props) {
             </div>
           </Reveal>
         )}
-        {(edition?.registrationEnabled || edition?.submissionsEnabled) && (
+        {edition && (
           <Reveal delay={0.4}>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+              <Button
+                asChild
+                size="lg"
+                className="bg-accent text-accent-foreground shadow-xl hover:bg-accent/90"
+              >
+                <Link href="/call-for-papers">
+                  <BookOpen className="h-4 w-4" />
+                  {t('home.callForPapersCta')}
+                </Link>
+              </Button>
               {edition.registrationEnabled && (
                 <Button
                   asChild
                   size="lg"
-                  className="bg-accent text-accent-foreground shadow-xl hover:bg-accent/90"
+                  variant="outline"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/10 hover:text-white"
                 >
                   <Link href="/registration">{t('common.register')}</Link>
                 </Button>
@@ -167,19 +166,29 @@ export default async function HomePage({ params }: Props) {
                   <Link href="/submission">{t('common.submit')}</Link>
                 </Button>
               )}
+              {!edition.registrationEnabled && (
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                >
+                  <Link href="/registration">{t('home.registrationDetailsCta')}</Link>
+                </Button>
+              )}
             </div>
           </Reveal>
         )}
         {edition?.conferenceDateStatus !== 'unresolved' && edition?.startDate && (
-          <Reveal delay={0.5} className="mt-14">
+          <Reveal delay={0.5} className="mt-10">
             <Countdown target={edition.startDate} />
           </Reveal>
         )}
       </section>
 
-      {/* ── About + stats ────────────────────────────────────────── */}
+      {/* ── About + edition metadata ─────────────────────────────── */}
       {edition && (
-        <section className="container py-20 md:py-28">
+        <section className="container section-pad">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <Reveal>
               <SectionHeading
@@ -199,21 +208,85 @@ export default async function HomePage({ params }: Props) {
               </SectionHeading>
             </Reveal>
             <Reveal delay={0.15}>
-              <dl className="grid grid-cols-2 gap-4">
-                {statItems.map(({ value, label }) => (
-                  <div
-                    key={label}
-                    className="rounded-2xl border border-border bg-card p-6 text-center shadow-sm"
-                  >
-                    <dd className="font-display text-4xl font-bold text-primary sm:text-5xl">
-                      <AnimatedCounter value={value} />
-                    </dd>
-                    <dt className="mt-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                      {label}
-                    </dt>
+              <dl className="academic-card divide-y overflow-hidden">
+                {edition.editionNumber && (
+                  <div className="flex gap-4 p-5 sm:p-6">
+                    <Layers3 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                    <div>
+                      <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('home.editionLabel')}
+                      </dt>
+                      <dd className="mt-1 font-semibold">
+                        {t('home.editionNumber', { number: edition.editionNumber })}
+                      </dd>
+                    </div>
                   </div>
-                ))}
+                )}
+                {organizerLabel && (
+                  <div className="flex gap-4 p-5 sm:p-6">
+                    <Building2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                    <div>
+                      <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('home.organizersLabel')}
+                      </dt>
+                      <dd className="mt-1 font-semibold">{organizerLabel}</dd>
+                    </div>
+                  </div>
+                )}
+                <div className="flex gap-4 p-5 sm:p-6">
+                  <LockKeyhole className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t('home.registrationLabel')}
+                    </dt>
+                    <dd className="mt-1 font-semibold">
+                      {edition.registrationEnabled
+                        ? t('home.registrationOpen')
+                        : t('home.registrationPending')}
+                    </dd>
+                  </div>
+                </div>
               </dl>
+            </Reveal>
+          </div>
+        </section>
+      )}
+
+      {/* ── Thematic axes ────────────────────────────────────────── */}
+      {axes.length > 0 && (
+        <section className="border-y bg-muted/30 section-pad">
+          <div className="container">
+            <Reveal>
+              <SectionHeading
+                eyebrow={t('nav.callForPapers')}
+                title={t('home.axesTitle')}
+                subtitle={t('home.axesSubtitle', { count: axes.length })}
+              />
+            </Reveal>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {axes.slice(0, 6).map((axis, index) => (
+                <Reveal key={axis.id} delay={index * 0.04}>
+                  <article className="academic-card flex h-full gap-4 p-5 transition-transform hover:-translate-y-0.5">
+                    <span className="font-display flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                        {axis.code}
+                      </p>
+                      <h3 className="mt-1 font-semibold leading-snug">{axis.title}</h3>
+                    </div>
+                  </article>
+                </Reveal>
+              ))}
+            </div>
+            <Reveal className="mt-9 text-center">
+              <Button asChild variant="outline">
+                <Link href="/call-for-papers">
+                  {t('home.exploreAxes', { count: axes.length })}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
             </Reveal>
           </div>
         </section>
