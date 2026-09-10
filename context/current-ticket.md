@@ -1,12 +1,38 @@
-# Current Ticket — 2024/2025 Historical Accuracy Review
+# Current Ticket — ICAIA 2027 Public Conference Content
 
 ## Status
 
-**IMPLEMENTED — awaiting owner review; not committed**
+**IMPLEMENTED AND VERIFIED ON `conference-tests` — awaiting owner review; not committed**
 
 ## Objective
 
-Reconcile the 2024 and 2025 archives against their official SciencesConf sites. Official historical content takes precedence over legacy seed values, while every record and relationship remains edition-scoped and idempotent.
+Publish the verified, non-conflicting ICAIA’27 argumentaire content through the edition-scoped Payload architecture while preserving the independent 2024 and 2025 archives. Advanced peer-review, payment, and invitation-letter workflows remain follow-up tickets.
+
+## 2027 implementation summary
+
+Primary project source: organizer-supplied `Argumentaire_ICAIA27_V1.docx`, previously reviewed and summarized in the project context. The original DOCX is no longer present in the workspace or local attachment cache, so this implementation is limited to facts retained in `context/` and repeated in the approved ticket. Exact committee-member and partner/journal names are not seeded because those names are not retained in the accessible source notes.
+
+The source conflict remains explicitly documented:
+
+- argumentaire narrative/calendar: **15 May 2027**
+- argumentaire cover/poster: **22 May 2027**
+
+The owner selected **15 May 2027** as the provisional working date. The edition uses 15 May for `startDate` and `endDate`, date display, countdown, and normal upcoming-edition behavior. Its status is `provisional`, both candidates remain stored with provenance, and a localized editorial note explains that 15 May is used pending final organizer confirmation. A Payload hook requires the candidates and note for provisional dates. Neither candidate is an ImportantDate, and 22 May is not presented as an event milestone.
+
+Implemented public model/content:
+
+- edition number, organizers, contact, date uncertainty, and registration gate on Editions
+- localized, edition-scoped ThematicAxes with stable import codes
+- edition-scoped ConferenceDetails for contribution types, languages, lengths, formats, anonymization, cover sheet, public review rules, proceedings, registration/payment policy, invitation letters, and fee categories
+- honorary/steering committee capacity and organization/journal plus national/international partner classification
+- one live/published 2027 edition, nine non-conflicting dates, 15 axes, five contribution types, and five fee categories
+- a generic call-for-papers view, edition contact fallback, fee display, and workflow CTAs gated by edition settings
+
+The source-authored 2027 content is stored in French and uses the existing French fallback on English routes. The legacy submission and registration workflows remain disabled because they cannot yet represent the supplied rules safely.
+
+Deferred workflow work: multiple authors/affiliations, staged abstract/full/final uploads, DOCX validation, private cover sheets, reviewer assignments/reports, revision rounds, payment transactions/proof uploads, and invitation-letter requests/generation.
+
+Generated migrations: `20260910_004105_icaia_2027_content` and `20260910_145907_icaia_2027_provisional_date`. The existing guard verified that Payload selected `TEST_DATABASE_URL` and rejected the production endpoint. The explicitly authorized `migrate:fresh` reset only `conference-tests`, applied all three repository migrations, and the seed populated 2024, 2025, and 2027. All 31 integration tests, requested routes, lint, TypeScript, build, and `git diff --check` pass.
 
 ## Active acceptance criteria
 

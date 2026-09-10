@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import config from '@/payload.config'
 import { seedC2I2A2024 } from '@/seed/c2i2a2024'
 import { seedICAIA2025 } from '@/seed/icaia2025'
+import { seedICAIA2027 } from '@/seed/icaia2027'
 
 let payload: Payload | undefined
 
@@ -14,7 +15,7 @@ function relationshipId(value: number | { id: number } | null | undefined): numb
 async function editionChildren(editionId: number) {
   if (!payload) throw new Error('Payload was not initialized')
   const where = { edition: { equals: editionId } }
-  const [sessions, speakers, rooms, dates, sponsors, committees, gallery] = await Promise.all([
+  const [sessions, speakers, rooms, dates, sponsors, committees, gallery, axes, details] = await Promise.all([
     payload.find({ collection: 'sessions', where, depth: 0, limit: 100, overrideAccess: true }),
     payload.find({ collection: 'speakers', where, limit: 100, overrideAccess: true }),
     payload.find({ collection: 'rooms', where, limit: 100, overrideAccess: true }),
@@ -22,8 +23,10 @@ async function editionChildren(editionId: number) {
     payload.find({ collection: 'sponsors', where, limit: 100, overrideAccess: true }),
     payload.find({ collection: 'committees', where, limit: 100, overrideAccess: true }),
     payload.find({ collection: 'gallery-items', where, limit: 100, overrideAccess: true }),
+    payload.find({ collection: 'thematic-axes', where, limit: 100, overrideAccess: true }),
+    payload.find({ collection: 'conference-details', where, limit: 10, overrideAccess: true }),
   ])
-  return { sessions, speakers, rooms, dates, sponsors, committees, gallery }
+  return { sessions, speakers, rooms, dates, sponsors, committees, gallery, axes, details }
 }
 
 describe('historical archive imports', () => {
@@ -160,10 +163,103 @@ describe('historical archive imports', () => {
     }).toEqual(idsAfterFirst)
   })
 
+  it('imports ICAIA 2027 with a provisional working date and preserved provenance', async () => {
+    if (!payload) throw new Error('Payload was not initialized')
+    const first = await seedICAIA2027(payload)
+    const firstChildren = await editionChildren(first.editionId)
+    const firstIDs = {
+      edition: first.editionId,
+      dates: firstChildren.dates.docs.map(({ id }) => id).sort((a, b) => a - b),
+      axes: firstChildren.axes.docs.map(({ id }) => id).sort((a, b) => a - b),
+      details: firstChildren.details.docs.map(({ id }) => id),
+    }
+
+    const second = await seedICAIA2027(payload)
+    const edition = await payload.findByID({
+      collection: 'editions',
+      id: second.editionId,
+      locale: 'fr',
+      fallbackLocale: false,
+      overrideAccess: false,
+    })
+    const children = await editionChildren(second.editionId)
+    const details = children.details.docs[0]
+
+    expect(edition).toMatchObject({
+      year: 2027,
+      editionNumber: 3,
+      theme:
+        'Vers un Écosystème Numérique Augmenté : Innover, Protéger et Transformer notre Monde Connecté',
+      startDate: expect.stringContaining('2027-05-15'),
+      endDate: expect.stringContaining('2027-05-15'),
+      conferenceDateStatus: 'provisional',
+      venue: 'HEEC Marrakech',
+      contactEmail: 'icaia@heec.ma',
+      submissionsEnabled: false,
+      registrationEnabled: false,
+      editionStatus: 'live',
+      _status: 'published',
+    })
+    expect(edition.organizers?.map(({ name }) => name)).toEqual([
+      'HEEC Marrakech',
+      'Université Cadi Ayyad',
+    ])
+    expect(edition.conferenceDateCandidates?.map(({ date }) => date.slice(0, 10))).toEqual([
+      '2027-05-15',
+      '2027-05-22',
+    ])
+    expect(edition.conferenceDateNote).toContain('22 mai 2027')
+    expect(edition.conferenceDateNote).toContain('date de travail')
+    expect(children.dates.docs).toHaveLength(9)
+    expect(children.dates.docs.map(({ date }) => date.slice(0, 10))).not.toContain('2027-05-15')
+    expect(children.dates.docs.map(({ date }) => date.slice(0, 10))).not.toContain('2027-05-22')
+    expect(children.axes.docs).toHaveLength(15)
+    expect(details).toMatchObject({
+      submissionLanguages: ['fr', 'en', 'ar'],
+      englishAbstractRequired: true,
+      extendedAbstractMinWords: 800,
+      extendedAbstractMaxWords: 1000,
+      fullPaperMinPages: 15,
+      fullPaperMaxPages: 20,
+      acceptedFormats: ['docx', 'pdf'],
+      anonymizedManuscriptRequired: true,
+      separateAuthorCoverSheetRequired: true,
+      reviewersPerSubmission: 2,
+      thirdReviewerOnDisagreement: true,
+      decisionOutcomes: ['acceptance', 'conditional-revision', 'rejection'],
+      anonymizedReportsReturned: true,
+      isbnProceedings: true,
+      registrationRequired: true,
+      paymentRequired: true,
+      paymentProofRequired: true,
+      invitationLettersAvailable: true,
+    })
+    expect(details.contributionTypes).toHaveLength(5)
+    expect(details.registrationFees).toHaveLength(5)
+    expect(children.sessions.docs).toHaveLength(0)
+    expect(children.speakers.docs).toHaveLength(0)
+    expect(children.rooms.docs).toHaveLength(0)
+    expect({
+      edition: second.editionId,
+      dates: children.dates.docs.map(({ id }) => id).sort((a, b) => a - b),
+      axes: children.axes.docs.map(({ id }) => id).sort((a, b) => a - b),
+      details: children.details.docs.map(({ id }) => id),
+    }).toEqual(firstIDs)
+
+    await expect(
+      payload.update({
+        collection: 'editions',
+        id: second.editionId,
+        overrideAccess: true,
+        data: { conferenceDateCandidates: [], conferenceDateNote: null },
+      }),
+    ).rejects.toThrow('requires the sourced candidates')
+  }, 180_000)
+
   it('contains no cross-edition relationships', async () => {
     if (!payload) throw new Error('Payload was not initialized')
     const editions = await Promise.all(
-      [2024, 2025].map((year) =>
+      [2024, 2025, 2027].map((year) =>
         payload?.find({
           collection: 'editions',
           where: { year: { equals: year } },
@@ -174,9 +270,10 @@ describe('historical archive imports', () => {
     )
     const edition2024 = editions[0]?.docs[0]
     const edition2025 = editions[1]?.docs[0]
-    if (!edition2024 || !edition2025) throw new Error('Historical editions are missing')
+    const edition2027 = editions[2]?.docs[0]
+    if (!edition2024 || !edition2025 || !edition2027) throw new Error('Conference editions are missing')
 
-    for (const edition of [edition2024, edition2025]) {
+    for (const edition of [edition2024, edition2025, edition2027]) {
       const children = await editionChildren(edition.id)
       const roomIds = new Set(children.rooms.docs.map(({ id }) => id))
       const speakerIds = new Set(children.speakers.docs.map(({ id }) => id))
@@ -188,6 +285,8 @@ describe('historical archive imports', () => {
         children.sponsors.docs,
         children.committees.docs,
         children.gallery.docs,
+        children.axes.docs,
+        children.details.docs,
       ]) {
         expect(collection.every((doc) => relationshipId(doc.edition) === edition.id)).toBe(true)
       }
@@ -206,7 +305,7 @@ describe('historical archive imports', () => {
 
   it('serves official localization and deliberate French fallback', async () => {
     if (!payload) throw new Error('Payload was not initialized')
-    const [editions2024, editions2025] = await Promise.all([
+    const [editions2024, editions2025, editions2027] = await Promise.all([
       payload.find({
         collection: 'editions',
         where: { year: { equals: 2024 } },
@@ -219,11 +318,28 @@ describe('historical archive imports', () => {
         limit: 1,
         overrideAccess: true,
       }),
+      payload.find({
+        collection: 'editions',
+        where: { year: { equals: 2027 } },
+        limit: 1,
+        overrideAccess: true,
+      }),
     ])
     const archive2024 = editions2024.docs[0]
     const archive2025 = editions2025.docs[0]
-    if (!archive2024 || !archive2025) throw new Error('Historical editions are missing')
-    const [en2024, en2024Sessions, en2024Dates, fr2025, en2025, en2025Dates] = await Promise.all([
+    const edition2027 = editions2027.docs[0]
+    if (!archive2024 || !archive2025 || !edition2027) throw new Error('Conference editions are missing')
+    const [
+      en2024,
+      en2024Sessions,
+      en2024Dates,
+      en2027,
+      en2027Axes,
+      en2027Details,
+      fr2025,
+      en2025,
+      en2025Dates,
+    ] = await Promise.all([
       payload.findByID({
         collection: 'editions',
         id: archive2024.id,
@@ -246,6 +362,29 @@ describe('historical archive imports', () => {
         fallbackLocale: 'fr',
         where: { edition: { equals: archive2024.id } },
         sort: 'order',
+        overrideAccess: false,
+      }),
+      payload.findByID({
+        collection: 'editions',
+        id: edition2027.id,
+        locale: 'en',
+        fallbackLocale: 'fr',
+        overrideAccess: false,
+      }),
+      payload.find({
+        collection: 'thematic-axes',
+        locale: 'en',
+        fallbackLocale: 'fr',
+        where: { edition: { equals: edition2027.id } },
+        sort: 'order',
+        overrideAccess: false,
+      }),
+      payload.find({
+        collection: 'conference-details',
+        locale: 'en',
+        fallbackLocale: 'fr',
+        where: { edition: { equals: edition2027.id } },
+        limit: 1,
         overrideAccess: false,
       }),
       payload.findByID({
@@ -297,6 +436,11 @@ describe('historical archive imports', () => {
       'Notification of Acceptance',
       'Event Date',
     ])
+    expect(en2027.theme).toBe(
+      'Vers un Écosystème Numérique Augmenté : Innover, Protéger et Transformer notre Monde Connecté',
+    )
+    expect(en2027Axes.docs[0]?.title).toBe('IA responsable et transformation numérique')
+    expect(en2027Details.docs[0]?.contributionTypes?.[0]?.label).toBe('Articles de recherche')
   })
 
   afterAll(async () => {

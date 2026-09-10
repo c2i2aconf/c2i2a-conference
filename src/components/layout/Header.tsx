@@ -44,6 +44,7 @@ export async function Header() {
               {t('home')}
             </NavLink>
             <NavLink href="/about">{t('about')}</NavLink>
+            <NavLink href="/call-for-papers">{t('callForPapers')}</NavLink>
             {customPages.map((page) => (
               <NavLink key={page.id} href={`/p/${page.slug}`}>
                 {page.title}
@@ -58,18 +59,22 @@ export async function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            asChild
-            className="hidden bg-accent text-accent-foreground shadow-sm hover:bg-accent/90 md:inline-flex"
-          >
-            <Link href="/registration">{t('registration')}</Link>
-          </Button>
+          {edition?.registrationEnabled && (
+            <Button
+              asChild
+              className="hidden bg-accent text-accent-foreground shadow-sm hover:bg-accent/90 md:inline-flex"
+            >
+              <Link href="/registration">{t('registration')}</Link>
+            </Button>
+          )}
           <UserMenu />
           <ThemeToggle />
           <LanguageSwitcher />
           <MobileMenu
             siteName={settings?.siteName || 'C2I2A'}
             customPages={customPages.map((page) => ({ slug: page.slug, title: page.title }))}
+            registrationEnabled={Boolean(edition?.registrationEnabled)}
+            submissionsEnabled={Boolean(edition?.submissionsEnabled)}
           />
         </div>
       </div>

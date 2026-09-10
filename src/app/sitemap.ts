@@ -7,6 +7,7 @@ import { getServerURL } from '@/lib/server-url'
 const STATIC_ROUTES = [
   '',
   '/about',
+  '/call-for-papers',
   '/access',
   '/archive',
   '/committees',
@@ -14,10 +15,8 @@ const STATIC_ROUTES = [
   '/dates',
   '/gallery',
   '/program',
-  '/registration',
   '/speakers',
   '/sponsors',
-  '/submission',
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -33,6 +32,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const customPages = live ? await getNavigationPages(live.id, locale) : []
       for (const route of STATIC_ROUTES) {
         entries.push({ url: `${origin}/${locale}${route}`, changeFrequency: 'weekly' })
+      }
+      if (live?.registrationEnabled) {
+        entries.push({ url: `${origin}/${locale}/registration`, changeFrequency: 'weekly' })
+      }
+      if (live?.submissionsEnabled) {
+        entries.push({ url: `${origin}/${locale}/submission`, changeFrequency: 'weekly' })
       }
       for (const page of customPages) {
         entries.push({ url: `${origin}/${locale}/p/${page.slug}`, changeFrequency: 'monthly' })

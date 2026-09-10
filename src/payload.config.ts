@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
 import { Committees } from './collections/Committees'
+import { ConferenceDetails } from './collections/ConferenceDetails'
 import { Editions } from './collections/Editions'
 import { GalleryItems } from './collections/GalleryItems'
 import { ImportantDates } from './collections/ImportantDates'
@@ -23,6 +24,7 @@ import { Speakers } from './collections/Speakers'
 import { Sponsors } from './collections/Sponsors'
 import { SubmissionFiles } from './collections/SubmissionFiles'
 import { Submissions } from './collections/Submissions'
+import { ThematicAxes } from './collections/ThematicAxes'
 import { Users } from './collections/Users'
 import { SiteSettings } from './globals/SiteSettings'
 import { privateVercelBlobStorage } from './lib/private-vercel-blob'
@@ -60,6 +62,8 @@ export default buildConfig({
     Rooms,
     // Content
     Editions,
+    ThematicAxes,
+    ConferenceDetails,
     Pages,
     ImportantDates,
     Committees,

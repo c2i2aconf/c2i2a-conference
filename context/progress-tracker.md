@@ -69,6 +69,25 @@
 
 ## In progress
 
+### ICAIA 2027 public content and minimum model — 2026-09-10
+
+- [x] Audited retained ICAIA’27 facts against current collections, workflow boundaries, queries, and frontend consumers.
+- [x] Represented 15 May as the owner-selected provisional working date while preserving both 15/22 May candidates and a required editorial provenance note; 22 May is not an ImportantDate.
+- [x] Added edition-scoped organizer, edition-number, contact, date-uncertainty, and registration-gate fields.
+- [x] Added structured ThematicAxes and ConferenceDetails collections.
+- [x] Added committee leadership-category and partner/journal classification capacity without inventing unavailable names.
+- [x] Added an idempotent 2027 importer for one live/published edition, nine non-conflicting dates, 15 axes, one details record, five contribution types, and five fee categories.
+- [x] Kept legacy submissions and online registration disabled for 2027 while exposing verified public rules and fees.
+- [x] Added generic call-for-papers, date-conflict, fee, contact, and conditional-CTA rendering.
+- [x] Added integration coverage for 2027 idempotency, isolation, structured fields, French fallback, dates, provisional provenance, and rejection of provenance removal.
+- [x] Generated and reviewed `20260910_004105_icaia_2027_content` and `20260910_145907_icaia_2027_provisional_date`.
+- [x] Verified through the existing guard that Payload selected `TEST_DATABASE_URL` and a database endpoint distinct from production.
+- [x] With explicit authorization, reset only `conference-tests` using `migrate:fresh`; all three repository migrations applied successfully.
+- [x] Seeded 2024, 2025, and 2027 and passed all 31 integration tests, including idempotency and cross-edition isolation.
+- [x] Verified HTTP 200 and expected independent content on all four historical routes plus FR/EN 2027 home, about, call-for-papers, dates, registration-information, and contact routes.
+- [x] Final Payload types, lint, TypeScript, production build against `conference-tests`, and `git diff --check` pass.
+- [ ] Owner review is required before commit or push.
+
 ### ICAIA 2025 historical archive import — 2026-09-09
 
 - [x] Re-verified the official SciencesConf identity/theme, abstract deadline (1 Sep 2025), acceptance notification (25 Sep 2025), event date (18 Oct 2025), HEEC Marrakech venue, bilingual description, Prof. Mohammed Youssfi profile, and FST/ENSA partners.

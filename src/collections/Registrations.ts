@@ -2,7 +2,7 @@ import { APIError, type CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isAdminOrSelf } from '../access'
 import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
-import { requireLiveEdition } from '../lib/workflow-boundary'
+import { requireOpenRegistrationEdition } from '../lib/workflow-boundary'
 
 /**
  * Free attendee registrations.
@@ -113,7 +113,7 @@ export const Registrations: CollectionConfig = {
             true,
           )
         }
-        const edition = await requireLiveEdition(req, data.edition)
+        const edition = await requireOpenRegistrationEdition(req, data.edition)
         const duplicate = await req.payload.find({
           collection: 'registrations',
           depth: 0,

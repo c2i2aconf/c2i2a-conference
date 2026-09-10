@@ -11,6 +11,8 @@ import type {
   GalleryItem,
   Page,
   SiteSetting,
+  ThematicAx,
+  ConferenceDetail,
 } from '@/payload-types'
 
 async function getCachedPayload() {
@@ -57,7 +59,7 @@ export const getLiveEdition = cache(async (locale: 'fr' | 'en'): Promise<Edition
         },
       },
       // Deterministic pick if several editions are ever live at once
-      sort: '-startDate',
+      sort: '-year',
       limit: 1,
     })
     return docs[0] || null
@@ -158,6 +160,47 @@ export async function getImportantDates(
   } catch (error) {
     logQueryFailure('Failed to fetch important dates', error)
     return []
+  }
+}
+
+export async function getThematicAxes(
+  editionId: number,
+  locale: 'fr' | 'en',
+): Promise<ThematicAx[]> {
+  try {
+    const payload = await getCachedPayload()
+    const { docs } = await payload.find({
+      collection: 'thematic-axes',
+      locale,
+      fallbackLocale: 'fr',
+      where: { edition: { equals: editionId } },
+      sort: 'order',
+      limit: 50,
+    })
+    return docs
+  } catch (error) {
+    logQueryFailure('Failed to fetch thematic axes', error)
+    return []
+  }
+}
+
+export async function getConferenceDetails(
+  editionId: number,
+  locale: 'fr' | 'en',
+): Promise<ConferenceDetail | null> {
+  try {
+    const payload = await getCachedPayload()
+    const { docs } = await payload.find({
+      collection: 'conference-details',
+      locale,
+      fallbackLocale: 'fr',
+      where: { edition: { equals: editionId } },
+      limit: 1,
+    })
+    return docs[0] || null
+  } catch (error) {
+    logQueryFailure('Failed to fetch conference details', error)
+    return null
   }
 }
 

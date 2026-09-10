@@ -75,6 +75,8 @@ export interface Config {
     speakers: Speaker;
     rooms: Room;
     editions: Edition;
+    'thematic-axes': ThematicAx;
+    'conference-details': ConferenceDetail;
     pages: Page;
     'important-dates': ImportantDate;
     committees: Committee;
@@ -97,6 +99,8 @@ export interface Config {
     speakers: SpeakersSelect<false> | SpeakersSelect<true>;
     rooms: RoomsSelect<false> | RoomsSelect<true>;
     editions: EditionsSelect<false> | EditionsSelect<true>;
+    'thematic-axes': ThematicAxesSelect<false> | ThematicAxesSelect<true>;
+    'conference-details': ConferenceDetailsSelect<false> | ConferenceDetailsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     'important-dates': ImportantDatesSelect<false> | ImportantDatesSelect<true>;
     committees: CommitteesSelect<false> | CommitteesSelect<true>;
@@ -181,11 +185,33 @@ export interface Edition {
   year: number;
   title: string;
   /**
+   * Ordinal edition number, when the official source states it.
+   */
+  editionNumber?: number | null;
+  /**
    * Edition theme/motto, e.g. "Generative AI in practice"
    */
   theme?: string | null;
-  startDate: string;
-  endDate: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  /**
+   * Use unresolved when official sources disagree.
+   */
+  conferenceDateStatus?: ('confirmed' | 'provisional' | 'unresolved') | null;
+  /**
+   * Editorial provenance and confirmation status for a provisional date.
+   */
+  conferenceDateNote?: string | null;
+  /**
+   * Sourced alternatives shown publicly while the conference date is unresolved.
+   */
+  conferenceDateCandidates?:
+    | {
+        date: string;
+        source: string;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * e.g. HEEC Campus, Marrakech
    */
@@ -195,6 +221,16 @@ export interface Edition {
    * Google Maps link or embed URL
    */
   venueMapUrl?: string | null;
+  organizers?:
+    | {
+        name: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Edition-specific public contact address.
+   */
+  contactEmail?: string | null;
   bannerImage?: (number | null) | Media;
   /**
    * Official poster (call for papers)
@@ -204,6 +240,10 @@ export interface Edition {
    * Manually enables submissions until the configured deadline.
    */
   submissionsEnabled?: boolean | null;
+  /**
+   * Enables the public registration workflow for this edition.
+   */
+  registrationEnabled?: boolean | null;
   /**
    * Submissions close automatically at this exact time.
    */
@@ -422,6 +462,70 @@ export interface Speaker {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "thematic-axes".
+ */
+export interface ThematicAx {
+  id: number;
+  edition: number | Edition;
+  /**
+   * Stable edition-scoped import key, e.g. AXE-01.
+   */
+  code: string;
+  title: string;
+  description?: string | null;
+  order: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "conference-details".
+ */
+export interface ConferenceDetail {
+  id: number;
+  edition: number | Edition;
+  contributionTypes?:
+    | {
+        code: string;
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  submissionLanguages?: ('fr' | 'en' | 'ar')[] | null;
+  englishAbstractRequired?: boolean | null;
+  extendedAbstractMinWords?: number | null;
+  extendedAbstractMaxWords?: number | null;
+  fullPaperMinPages?: number | null;
+  fullPaperMaxPages?: number | null;
+  acceptedFormats?: ('docx' | 'pdf')[] | null;
+  anonymizedManuscriptRequired?: boolean | null;
+  separateAuthorCoverSheetRequired?: boolean | null;
+  reviewersPerSubmission?: number | null;
+  thirdReviewerOnDisagreement?: boolean | null;
+  decisionOutcomes?: ('acceptance' | 'conditional-revision' | 'rejection')[] | null;
+  anonymizedReportsReturned?: boolean | null;
+  isbnProceedings?: boolean | null;
+  registrationRequired?: boolean | null;
+  paymentRequired?: boolean | null;
+  paymentProofRequired?: boolean | null;
+  invitationLettersAvailable?: boolean | null;
+  registrationFees?:
+    | {
+        code: string;
+        label: string;
+        amount?: number | null;
+        currency?: ('MAD' | 'EUR') | null;
+        alternateAmount?: number | null;
+        alternateCurrency?: ('MAD' | 'EUR') | null;
+        exempt?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
@@ -482,7 +586,7 @@ export interface ImportantDate {
 export interface Committee {
   id: number;
   edition: number | Edition;
-  type: 'scientific' | 'organization';
+  type: 'honorary' | 'steering' | 'scientific' | 'organization';
   members?:
     | {
         name: string;
@@ -507,6 +611,8 @@ export interface Sponsor {
   name: string;
   logo?: (number | null) | Media;
   tier: 'platinum' | 'gold' | 'silver' | 'bronze' | 'partner';
+  partnerType?: ('organization' | 'journal') | null;
+  partnerScope?: ('national' | 'international') | null;
   website?: string | null;
   description?: string | null;
   updatedAt: string;
@@ -580,6 +686,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'editions';
         value: number | Edition;
+      } | null)
+    | ({
+        relationTo: 'thematic-axes';
+        value: number | ThematicAx;
+      } | null)
+    | ({
+        relationTo: 'conference-details';
+        value: number | ConferenceDetail;
       } | null)
     | ({
         relationTo: 'pages';
@@ -767,21 +881,98 @@ export interface RoomsSelect<T extends boolean = true> {
 export interface EditionsSelect<T extends boolean = true> {
   year?: T;
   title?: T;
+  editionNumber?: T;
   theme?: T;
   startDate?: T;
   endDate?: T;
+  conferenceDateStatus?: T;
+  conferenceDateNote?: T;
+  conferenceDateCandidates?:
+    | T
+    | {
+        date?: T;
+        source?: T;
+        id?: T;
+      };
   venue?: T;
   venueAddress?: T;
   venueMapUrl?: T;
+  organizers?:
+    | T
+    | {
+        name?: T;
+        id?: T;
+      };
+  contactEmail?: T;
   bannerImage?: T;
   posterImage?: T;
   submissionsEnabled?: T;
+  registrationEnabled?: T;
   submissionDeadline?: T;
   description?: T;
   editionStatus?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "thematic-axes_select".
+ */
+export interface ThematicAxesSelect<T extends boolean = true> {
+  edition?: T;
+  code?: T;
+  title?: T;
+  description?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "conference-details_select".
+ */
+export interface ConferenceDetailsSelect<T extends boolean = true> {
+  edition?: T;
+  contributionTypes?:
+    | T
+    | {
+        code?: T;
+        label?: T;
+        id?: T;
+      };
+  submissionLanguages?: T;
+  englishAbstractRequired?: T;
+  extendedAbstractMinWords?: T;
+  extendedAbstractMaxWords?: T;
+  fullPaperMinPages?: T;
+  fullPaperMaxPages?: T;
+  acceptedFormats?: T;
+  anonymizedManuscriptRequired?: T;
+  separateAuthorCoverSheetRequired?: T;
+  reviewersPerSubmission?: T;
+  thirdReviewerOnDisagreement?: T;
+  decisionOutcomes?: T;
+  anonymizedReportsReturned?: T;
+  isbnProceedings?: T;
+  registrationRequired?: T;
+  paymentRequired?: T;
+  paymentProofRequired?: T;
+  invitationLettersAvailable?: T;
+  registrationFees?:
+    | T
+    | {
+        code?: T;
+        label?: T;
+        amount?: T;
+        currency?: T;
+        alternateAmount?: T;
+        alternateCurrency?: T;
+        exempt?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -840,6 +1031,8 @@ export interface SponsorsSelect<T extends boolean = true> {
   name?: T;
   logo?: T;
   tier?: T;
+  partnerType?: T;
+  partnerScope?: T;
   website?: T;
   description?: T;
   updatedAt?: T;

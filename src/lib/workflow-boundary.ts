@@ -44,6 +44,14 @@ export async function requireOpenSubmissionEdition(req: PayloadRequest, editionV
   return edition
 }
 
+export async function requireOpenRegistrationEdition(req: PayloadRequest, editionValue: unknown) {
+  const edition = await requireLiveEdition(req, editionValue)
+  if (!edition.registrationEnabled) {
+    throw new APIError('Registrations are closed.', 400, undefined, true)
+  }
+  return edition
+}
+
 export async function requireAnyOpenSubmissionEdition(req: PayloadRequest) {
   const result = await req.payload.find({
     collection: 'editions',
