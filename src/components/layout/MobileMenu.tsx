@@ -43,24 +43,28 @@ export function MobileMenu({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <Button variant="ghost" size="icon" className="lg:hidden">
           <Menu className="h-5 w-5" />
           <span className="sr-only">{t('menu')}</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-72 p-0" closeLabel={tCommon('close')}>
+      <SheetContent
+        side="right"
+        className="flex w-[min(22rem,90vw)] flex-col p-0"
+        closeLabel={tCommon('close')}
+      >
         <SheetHeader className="border-b p-6">
           <SheetTitle className="font-display text-xl font-bold text-primary">
             {siteName}
           </SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-col px-6 py-4">
+        <nav className="flex flex-1 flex-col overflow-y-auto px-6 py-4" aria-label={t('menu')}>
           {ITEMS.map(({ href, key }) => (
             <Link
               key={key}
               href={href}
               onClick={() => setOpen(false)}
-              className="rounded-md px-2 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-primary"
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {t(key)}
             </Link>
@@ -70,13 +74,18 @@ export function MobileMenu({
               key={page.slug}
               href={`/p/${page.slug}`}
               onClick={() => setOpen(false)}
-              className="rounded-md px-2 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-primary"
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {page.title}
             </Link>
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-2 border-t p-6">
+          <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <Link href="/call-for-papers" onClick={() => setOpen(false)}>
+              {t('callForPapers')}
+            </Link>
+          </Button>
           {registrationEnabled && (
             <Button asChild>
               <Link href="/registration" onClick={() => setOpen(false)}>

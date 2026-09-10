@@ -46,6 +46,17 @@
   },
   "home": {
     "organizedBy": "Organized by {organization}",
+    "editionNumber": "{number, selectordinal, one {#st edition} two {#nd edition} few {#rd edition} other {#th edition}}",
+    "editionLabel": "Edition",
+    "organizersLabel": "Organizers",
+    "registrationLabel": "Registration",
+    "registrationOpen": "Registration open",
+    "registrationPending": "Opening soon",
+    "callForPapersCta": "Read the call for papers",
+    "registrationDetailsCta": "Fees and requirements",
+    "axesTitle": "Themes for this edition",
+    "axesSubtitle": "{count} axes exploring the challenges of an augmented digital ecosystem",
+    "exploreAxes": "Explore all {count} thematic axes",
     "countdownTitle": "The conference starts in",
     "aboutTitle": "About the conference",
     "aboutCta": "Full description",
@@ -115,7 +126,8 @@
   "committees": {
     "title": "Committees",
     "subtitle": "The teams behind the conference",
-    "empty": "Committees will be announced soon."
+    "empty": "Committees will be announced soon.",
+    "committeeLabel": "Committee"
   },
   "gallery": {
     "title": "Photo gallery",
@@ -127,6 +139,9 @@
     "title": "Registration",
     "subtitle": "Conference participation and registration details",
     "notOpen": "Online registration is not open yet.",
+    "notOpenTitle": "Opening soon",
+    "participation": "Attend the conference",
+    "feesSubtitle": "Official categories and fees for this edition",
     "fees": "Registration fees",
     "exempt": "Exempt",
     "paymentProofRequired": "Proof of payment is required.",
@@ -232,7 +247,8 @@
     "followUs": "Follow us",
     "quickLinks": "Quick links",
     "rights": "All rights reserved",
-    "organizedBy": "Organized by"
+    "organizedBy": "Organized by",
+    "information": "Practical information"
   },
   "customPage": {
     "empty": "This content will be published soon."
@@ -246,6 +262,11 @@
     "title": "Call for papers",
     "subtitle": "Themes, contributions, and requirements for this edition",
     "axes": "Thematic axes",
+    "scope": "Scientific scope",
+    "axesCount": "{count} research and application axes",
+    "guidelines": "Author guidelines",
+    "requirementsTitle": "Prepare a contribution",
+    "requirementsSubtitle": "Formats, languages, review, and publication requirements from the edition's official information",
     "contributions": "Contribution types and languages",
     "submissionLanguages": "Submission languages",
     "englishAbstract": "An English abstract is required.",

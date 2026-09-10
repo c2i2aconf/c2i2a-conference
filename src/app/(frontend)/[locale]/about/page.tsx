@@ -38,17 +38,17 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     <>
       <PageHero eyebrow={edition ? `C2I2A ${edition.year}` : 'C2I2A'} title={t('title')} />
 
-      <section className="container py-16 md:py-24">
+      <section className="container section-pad">
         {!edition || !edition.description ? (
           <p className="text-center text-muted-foreground">{t('empty')}</p>
         ) : (
-          <div className="grid items-start gap-12 lg:grid-cols-[1fr_320px]">
+          <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-16">
             <Reveal>
-              <article className="rich-text">
+              <article className="rich-text max-w-3xl">
                 <RichText data={edition.description} />
               </article>
               <div className="mt-10 flex flex-wrap gap-3 text-sm text-muted-foreground">
-                <ConferenceDateDisplay edition={edition} locale={locale} />
+                <ConferenceDateDisplay edition={edition} locale={locale} showEditorialNote />
                 {edition.venue && (
                   <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-1.5">
                     <MapPin className="h-4 w-4 text-primary" />
@@ -59,7 +59,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             </Reveal>
             {poster?.url && (
               <Reveal delay={0.15}>
-                <figure className="overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
+                <figure className="academic-card sticky top-24 overflow-hidden">
                   <Image
                     src={poster.url}
                     alt={t('poster')}

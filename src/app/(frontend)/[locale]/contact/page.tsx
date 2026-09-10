@@ -36,12 +36,12 @@ export default async function ContactPage({
     <>
       <PageHero title={t('title')} subtitle={t('subtitle')} />
 
-      <section className="container py-16 md:py-24">
+      <section className="container section-pad">
         <div className="mx-auto grid max-w-4xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <Reveal>
             {email ? (
               <a href={`mailto:${email}`} className="block h-full">
-                <Card className="h-full transition-shadow hover:shadow-lg">
+                <Card className="academic-card h-full transition-transform hover:-translate-y-1">
                   <CardContent className="flex h-full flex-col items-center p-8 text-center">
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <Mail className="h-5 w-5" />
@@ -57,7 +57,7 @@ export default async function ContactPage({
           </Reveal>
 
           <Reveal delay={0.1}>
-            <Card className="h-full">
+            <Card className="academic-card h-full">
               <CardContent className="flex h-full flex-col items-center p-8 text-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Building2 className="h-5 w-5" />
@@ -76,7 +76,7 @@ export default async function ContactPage({
           </Reveal>
 
           <Reveal delay={0.2}>
-            <Card className="h-full">
+            <Card className="academic-card h-full">
               <CardContent className="flex h-full flex-col items-center p-8 text-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Share2 className="h-5 w-5" />

@@ -8,10 +8,12 @@ export async function ConferenceDateDisplay({
   edition,
   locale,
   inverse = false,
+  showEditorialNote = false,
 }: {
   edition: Edition
   locale: 'fr' | 'en'
   inverse?: boolean
+  showEditorialNote?: boolean
 }) {
   const t = await getTranslations({ locale, namespace: 'conferenceDate' })
   const dateOptions: Intl.DateTimeFormatOptions = {
@@ -54,13 +56,15 @@ export async function ConferenceDateDisplay({
         {!sameDay && ` – ${formatDate(edition.endDate, locale, dateOptions)}`}
         {edition.conferenceDateStatus === 'provisional' && ` (${t('provisional')})`}
       </span>
-      {edition.conferenceDateStatus === 'provisional' && edition.conferenceDateNote && (
-        <p
-          className={`max-w-2xl text-center text-xs ${inverse ? 'text-white/70' : 'text-muted-foreground'}`}
-        >
-          {edition.conferenceDateNote}
-        </p>
-      )}
+      {showEditorialNote &&
+        edition.conferenceDateStatus === 'provisional' &&
+        edition.conferenceDateNote && (
+          <p
+            className={`max-w-2xl text-center text-xs ${inverse ? 'text-white/70' : 'text-muted-foreground'}`}
+          >
+            {edition.conferenceDateNote}
+          </p>
+        )}
     </div>
   )
 }

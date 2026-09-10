@@ -5,6 +5,7 @@ import { getLiveEdition, getImportantDates } from '@/lib/queries'
 import { formatDate } from '@/lib/dates'
 import { Badge } from '@/components/ui/badge'
 import { PageHero } from '@/components/sections/PageHero'
+import { CalendarDays } from 'lucide-react'
 
 // CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
 export const revalidate = 3600
@@ -26,6 +27,9 @@ export default async function DatesPage({ params }: { params: Promise<{ locale: 
   const t = await getTranslations({ locale, namespace: 'dates' })
   const edition = await getLiveEdition(locale)
   const dates = edition ? await getImportantDates(edition.id, locale) : []
+  const chronologicalDates = [...dates].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  )
 
   function getStatusColor(status: string) {
     switch (status) {
@@ -43,12 +47,12 @@ export default async function DatesPage({ params }: { params: Promise<{ locale: 
   return (
     <>
       <PageHero title={t('title')} subtitle={t('subtitle')} />
-      <div className="container py-12 md:py-20 max-w-3xl mx-auto">
+      <div className="container section-pad mx-auto max-w-5xl">
         {!edition || dates.length === 0 ? (
           <p className="text-center text-muted-foreground">{t('empty')}</p>
         ) : (
-          <div className="relative border-l-2 border-muted ml-4 md:ml-8 space-y-12">
-            {dates.map((item) => {
+          <ol className="relative space-y-5 before:absolute before:bottom-8 before:left-[1.15rem] before:top-8 before:w-px before:bg-border md:before:left-8">
+            {chronologicalDates.map((item, index) => {
               const dateStr = formatDate(item.date, locale, {
                 day: 'numeric',
                 month: 'long',
@@ -63,25 +67,29 @@ export default async function DatesPage({ params }: { params: Promise<{ locale: 
                 : null
 
               return (
-                <div key={item.id} className="relative pl-8">
-                  {/* Timeline dot */}
-                  <span className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-primary ring-4 ring-background" />
-
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-                    <h3 className="text-xl font-semibold">{item.label}</h3>
-                    <Badge className={getStatusColor(item.status)} variant="secondary">
-                      {t(item.status)}
-                    </Badge>
-                  </div>
-
-                  <p className="text-muted-foreground font-medium">
-                    {dateStr} {endStr ? ` - ${endStr}` : ''}
-                  </p>
-                  {item.note && <p className="text-sm mt-2 text-foreground/80">{item.note}</p>}
-                </div>
+                <li key={item.id} className="relative pl-12 md:pl-20">
+                  <span className="absolute left-0 top-7 z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 border-background bg-primary text-xs font-bold text-primary-foreground md:left-3">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <article className="academic-card p-5 sm:p-6">
+                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                      <div>
+                        <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+                          <CalendarDays className="h-4 w-4" />
+                          {dateStr} {endStr ? ` – ${endStr}` : ''}
+                        </p>
+                        <h2 className="mt-2 text-lg font-semibold sm:text-xl">{item.label}</h2>
+                      </div>
+                      <Badge className={getStatusColor(item.status)} variant="secondary">
+                        {t(item.status)}
+                      </Badge>
+                    </div>
+                    {item.note && <p className="text-sm mt-2 text-foreground/80">{item.note}</p>}
+                  </article>
+                </li>
               )
             })}
-          </div>
+          </ol>
         )}
       </div>
     </>
