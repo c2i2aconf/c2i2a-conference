@@ -63,6 +63,12 @@ export default async function ArchiveYearPage({ params }: Props) {
     getSponsors(edition.id, locale),
     getCommittees(edition.id, locale),
   ])
+  const committeeLabels = {
+    honorary: t('honoraryCommittee'),
+    steering: t('steeringCommittee'),
+    scientific: t('scientificCommittee'),
+    organization: t('organizationCommittee'),
+  }
 
   return (
     <>
@@ -79,14 +85,16 @@ export default async function ArchiveYearPage({ params }: Props) {
             </article>
           )}
           <div className="flex flex-col gap-3 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2">
-              <CalendarDays className="h-4 w-4 text-primary" />
-              {formatDate(edition.startDate, locale, {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </span>
+            {edition.startDate && (
+              <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2">
+                <CalendarDays className="h-4 w-4 text-primary" />
+                {formatDate(edition.startDate, locale, {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </span>
+            )}
             {edition.venue && (
               <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2">
                 <MapPin className="h-4 w-4 text-primary" />
@@ -202,9 +210,7 @@ export default async function ArchiveYearPage({ params }: Props) {
                 <Card key={committee.id}>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-semibold">
-                      {committee.type === 'scientific'
-                        ? t('scientificCommittee')
-                        : t('organizationCommittee')}
+                      {committeeLabels[committee.type]}
                     </h3>
                     <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                       {committee.members?.map((member) => (

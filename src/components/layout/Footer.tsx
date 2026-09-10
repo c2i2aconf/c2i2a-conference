@@ -20,6 +20,7 @@ export async function Footer() {
 
   const exploreLinks = [
     { href: '/about', label: tNav('about') },
+    { href: '/call-for-papers', label: tNav('callForPapers') },
     { href: '/program', label: tNav('program') },
     { href: '/dates', label: tNav('dates') },
     { href: '/speakers', label: tNav('speakers') },
@@ -28,12 +29,15 @@ export async function Footer() {
   ]
 
   const attendLinks = [
-    { href: '/registration', label: tNav('registration') },
-    { href: '/submission', label: tNav('submission') },
+    ...(edition?.registrationEnabled
+      ? [{ href: '/registration', label: tNav('registration') }]
+      : []),
+    ...(edition?.submissionsEnabled ? [{ href: '/submission', label: tNav('submission') }] : []),
     { href: '/access', label: tNav('access') },
     { href: '/gallery', label: tNav('gallery') },
     { href: '/contact', label: tNav('contact') },
-  ] as const
+  ]
+  const contactEmail = edition?.contactEmail || siteSettings?.contactEmail
 
   return (
     <footer className="w-full border-t bg-muted/30 text-muted-foreground">
@@ -106,14 +110,14 @@ export async function Footer() {
             {t('contact')}
           </h3>
           <ul className="space-y-2.5 text-sm">
-            {siteSettings?.contactEmail ? (
+            {contactEmail ? (
               <li>
                 <a
-                  href={`mailto:${siteSettings.contactEmail}`}
+                  href={`mailto:${contactEmail}`}
                   className="flex items-center gap-2 transition-colors hover:text-primary"
                 >
                   <Mail className="h-4 w-4 shrink-0" />
-                  {siteSettings.contactEmail}
+                  {contactEmail}
                 </a>
               </li>
             ) : null}

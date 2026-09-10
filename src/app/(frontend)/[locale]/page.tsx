@@ -1,11 +1,10 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import Image from 'next/image'
-import { ArrowRight, CalendarDays, MapPin } from 'lucide-react'
+import { ArrowRight, MapPin } from 'lucide-react'
 import React from 'react'
 import type { Metadata } from 'next'
 
 import { Link } from '@/i18n/navigation'
-import type { Edition } from '@/payload-types'
 import {
   getEditionStats,
   getGalleryItems,
@@ -21,6 +20,7 @@ import { getMediaUrl, getMediaVariant } from '@/lib/media'
 import { Reveal } from '@/components/motion/Reveal'
 import { AnimatedCounter } from '@/components/motion/AnimatedCounter'
 import { Countdown } from '@/components/sections/Countdown'
+import { ConferenceDateDisplay } from '@/components/sections/ConferenceDateDisplay'
 import { MapEmbed } from '@/components/sections/MapEmbed'
 import { SectionHeading } from '@/components/sections/SectionHeading'
 import { Button } from '@/components/ui/button'
@@ -53,16 +53,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-function formatDateRange(edition: Edition, locale: 'fr' | 'en') {
-  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
-  const start = toDateUTC(edition.startDate)
-  const end = toDateUTC(edition.endDate)
-  if (start.toISOString() === end.toISOString()) {
-    return formatDate(edition.startDate, locale, opts)
-  }
-  return `${formatDate(edition.startDate, locale, { day: 'numeric', month: 'long' })} – ${formatDate(edition.endDate, locale, opts)}`
-}
-
 export default async function HomePage({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
@@ -93,6 +83,14 @@ export default async function HomePage({ params }: Props) {
           ) + 1,
         )
       : 0
+  const statItems = [
+    { value: stats.speakers, label: t('home.stats.speakers') },
+    { value: stats.sessions, label: t('home.stats.sessions') },
+    { value: stats.attendees, label: t('home.stats.attendees') },
+    ...(days > 0 ? [{ value: days, label: t('home.stats.days') }] : []),
+  ]
+  const organizerLabel =
+    edition?.organizers?.map(({ name }) => name).join(' + ') || settings?.organizationName || ''
 
   return (
     <>
@@ -120,7 +118,7 @@ export default async function HomePage({ params }: Props) {
 
         <Reveal>
           <p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-white/70 sm:text-sm">
-            {t('home.organizedBy', { organization: settings?.organizationName || '' })}
+            {t('home.organizedBy', { organization: organizerLabel })}
           </p>
         </Reveal>
         <Reveal delay={0.1}>
@@ -137,10 +135,7 @@ export default async function HomePage({ params }: Props) {
         {edition && (
           <Reveal delay={0.3}>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm text-white/90">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
-                <CalendarDays className="h-4 w-4 text-accent" />
-                {formatDateRange(edition, locale)}
-              </span>
+              <ConferenceDateDisplay edition={edition} locale={locale} inverse />
               {edition.venue && (
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
                   <MapPin className="h-4 w-4 text-accent" />
@@ -150,26 +145,32 @@ export default async function HomePage({ params }: Props) {
             </div>
           </Reveal>
         )}
-        <Reveal delay={0.4}>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button
-              asChild
-              size="lg"
-              className="bg-accent text-accent-foreground shadow-xl hover:bg-accent/90"
-            >
-              <Link href="/registration">{t('common.register')}</Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
-            >
-              <Link href="/submission">{t('common.submit')}</Link>
-            </Button>
-          </div>
-        </Reveal>
-        {edition && (
+        {(edition?.registrationEnabled || edition?.submissionsEnabled) && (
+          <Reveal delay={0.4}>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+              {edition.registrationEnabled && (
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-accent text-accent-foreground shadow-xl hover:bg-accent/90"
+                >
+                  <Link href="/registration">{t('common.register')}</Link>
+                </Button>
+              )}
+              {edition.submissionsEnabled && (
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
+                >
+                  <Link href="/submission">{t('common.submit')}</Link>
+                </Button>
+              )}
+            </div>
+          </Reveal>
+        )}
+        {edition?.conferenceDateStatus !== 'unresolved' && edition?.startDate && (
           <Reveal delay={0.5} className="mt-14">
             <Countdown target={edition.startDate} />
           </Reveal>
@@ -199,12 +200,7 @@ export default async function HomePage({ params }: Props) {
             </Reveal>
             <Reveal delay={0.15}>
               <dl className="grid grid-cols-2 gap-4">
-                {[
-                  { value: stats.speakers, label: t('home.stats.speakers') },
-                  { value: stats.sessions, label: t('home.stats.sessions') },
-                  { value: stats.attendees, label: t('home.stats.attendees') },
-                  { value: days, label: t('home.stats.days') },
-                ].map(({ value, label }) => (
+                {statItems.map(({ value, label }) => (
                   <div
                     key={label}
                     className="rounded-2xl border border-border bg-card p-6 text-center shadow-sm"

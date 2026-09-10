@@ -162,7 +162,12 @@ describe('Payload access and ownership hooks', () => {
       req: {
         payload: {
           find: async () => ({ totalDocs: 0 }),
-          findByID: async () => ({ id: 3, _status: 'published', editionStatus: 'live' }),
+          findByID: async () => ({
+            id: 3,
+            _status: 'published',
+            editionStatus: 'live',
+            registrationEnabled: true,
+          }),
         },
         user: { id: 4, role: 'attendee', email: 'person@example.com' },
       },

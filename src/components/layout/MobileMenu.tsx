@@ -12,6 +12,7 @@ import { UserMenu } from './UserMenu'
 const ITEMS = [
   { href: '/', key: 'home' },
   { href: '/about', key: 'about' },
+  { href: '/call-for-papers', key: 'callForPapers' },
   { href: '/program', key: 'program' },
   { href: '/dates', key: 'dates' },
   { href: '/speakers', key: 'speakers' },
@@ -27,9 +28,13 @@ const ITEMS = [
 export function MobileMenu({
   siteName,
   customPages,
+  registrationEnabled,
+  submissionsEnabled,
 }: {
   siteName: string
   customPages: Array<{ slug: string; title: string }>
+  registrationEnabled: boolean
+  submissionsEnabled: boolean
 }) {
   const t = useTranslations('nav')
   const tCommon = useTranslations('common')
@@ -72,16 +77,20 @@ export function MobileMenu({
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-2 border-t p-6">
-          <Button asChild>
-            <Link href="/registration" onClick={() => setOpen(false)}>
-              {t('registration')}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/submission" onClick={() => setOpen(false)}>
-              {t('submission')}
-            </Link>
-          </Button>
+          {registrationEnabled && (
+            <Button asChild>
+              <Link href="/registration" onClick={() => setOpen(false)}>
+                {t('registration')}
+              </Link>
+            </Button>
+          )}
+          {submissionsEnabled && (
+            <Button asChild variant="outline">
+              <Link href="/submission" onClick={() => setOpen(false)}>
+                {t('submission')}
+              </Link>
+            </Button>
+          )}
           <UserMenu variant="menu" onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>

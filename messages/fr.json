@@ -16,9 +16,12 @@
     "committees": "Comités",
     "scientificCommittee": "Comité scientifique",
     "organizationCommittee": "Comité d'organisation",
+    "honoraryCommittee": "Comité d'honneur",
+    "steeringCommittee": "Comité de pilotage",
     "contact": "Contacts",
     "archive": "Éditions précédentes",
     "speakers": "Intervenants",
+    "callForPapers": "Appel à communications",
     "account": "Mon compte",
     "menu": "Menu"
   },
@@ -122,7 +125,12 @@
   },
   "registration": {
     "title": "Inscription",
-    "subtitle": "Inscrivez-vous gratuitement pour participer au colloque",
+    "subtitle": "Modalités et inscription au colloque",
+    "notOpen": "Les inscriptions en ligne ne sont pas encore ouvertes.",
+    "fees": "Frais d'inscription",
+    "exempt": "Exonéré",
+    "paymentProofRequired": "Un justificatif de paiement est requis.",
+    "invitationLettersAvailable": "Une lettre d'invitation peut être délivrée.",
     "firstName": "Prénom",
     "lastName": "Nom",
     "email": "E-mail",
@@ -228,5 +236,40 @@
   },
   "customPage": {
     "empty": "Ce contenu sera publié prochainement."
+  },
+  "conferenceDate": {
+    "provisional": "date de travail",
+    "unresolved": "Date du colloque à confirmer",
+    "awaitingConfirmation": "Les sources fournies indiquent des dates différentes. Aucune date définitive n'est publiée dans l'attente d'une confirmation officielle."
+  },
+  "callForPapers": {
+    "title": "Appel à communications",
+    "subtitle": "Axes, contributions et modalités de cette édition",
+    "axes": "Axes thématiques",
+    "contributions": "Types de contributions et langues",
+    "submissionLanguages": "Langues de soumission",
+    "englishAbstract": "Un résumé en anglais est requis.",
+    "format": "Format des contributions",
+    "extendedAbstract": "Résumé étendu : {min} à {max} mots",
+    "fullPaper": "Article complet : {min} à {max} pages",
+    "acceptedFormats": "Formats acceptés : {formats}",
+    "anonymizedManuscript": "Le manuscrit destiné à l'évaluation doit être anonymisé.",
+    "coverSheet": "Les auteurs et affiliations doivent figurer sur une page de garde séparée.",
+    "review": "Évaluation scientifique",
+    "reviewers": "Évaluation par {count} membres du comité scientifique.",
+    "thirdReviewer": "Un troisième évaluateur intervient en cas de désaccord.",
+    "decisions": "Décisions possibles : {outcomes}.",
+    "reportsReturned": "Les rapports anonymisés sont retournés aux auteurs.",
+    "publication": "Publication et participation",
+    "isbnProceedings": "Les contributions acceptées sont publiées dans des actes avec ISBN.",
+    "registrationRequired": "L'inscription est obligatoire pour participer.",
+    "paymentProof": "Un justificatif de paiement est requis.",
+    "invitationLetters": "Une lettre d'invitation peut être délivrée.",
+    "languages": { "fr": "français", "en": "anglais", "ar": "arabe" },
+    "outcomes": {
+      "acceptance": "acceptation",
+      "conditional-revision": "révision conditionnelle",
+      "rejection": "rejet"
+    }
   }
 }

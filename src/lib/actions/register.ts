@@ -26,7 +26,7 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
     }
 
     const edition = await getLiveEdition(locale)
-    if (!edition) {
+    if (!edition || !edition.registrationEnabled) {
       return { success: false, error: 'no_live_edition' }
     }
 

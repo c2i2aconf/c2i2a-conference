@@ -16,9 +16,12 @@
     "committees": "Committees",
     "scientificCommittee": "Scientific committee",
     "organizationCommittee": "Organization committee",
+    "honoraryCommittee": "Honorary committee",
+    "steeringCommittee": "Steering committee",
     "contact": "Contact",
     "archive": "Past editions",
     "speakers": "Speakers",
+    "callForPapers": "Call for papers",
     "account": "My account",
     "menu": "Menu"
   },
@@ -122,7 +125,12 @@
   },
   "registration": {
     "title": "Registration",
-    "subtitle": "Register for free to attend the conference",
+    "subtitle": "Conference participation and registration details",
+    "notOpen": "Online registration is not open yet.",
+    "fees": "Registration fees",
+    "exempt": "Exempt",
+    "paymentProofRequired": "Proof of payment is required.",
+    "invitationLettersAvailable": "An invitation letter may be issued.",
     "firstName": "First name",
     "lastName": "Last name",
     "email": "Email",
@@ -228,5 +236,40 @@
   },
   "customPage": {
     "empty": "This content will be published soon."
+  },
+  "conferenceDate": {
+    "provisional": "working date",
+    "unresolved": "Conference date to be confirmed",
+    "awaitingConfirmation": "The supplied sources give different dates. No definitive date is published pending official confirmation."
+  },
+  "callForPapers": {
+    "title": "Call for papers",
+    "subtitle": "Themes, contributions, and requirements for this edition",
+    "axes": "Thematic axes",
+    "contributions": "Contribution types and languages",
+    "submissionLanguages": "Submission languages",
+    "englishAbstract": "An English abstract is required.",
+    "format": "Contribution format",
+    "extendedAbstract": "Extended abstract: {min}–{max} words",
+    "fullPaper": "Full paper: {min}–{max} pages",
+    "acceptedFormats": "Accepted formats: {formats}",
+    "anonymizedManuscript": "The review manuscript must be anonymized.",
+    "coverSheet": "Authors and affiliations must be supplied on a separate cover sheet.",
+    "review": "Scientific review",
+    "reviewers": "Review by {count} scientific committee members.",
+    "thirdReviewer": "A third reviewer is assigned if the reviewers disagree.",
+    "decisions": "Possible decisions: {outcomes}.",
+    "reportsReturned": "Anonymized reports are returned to authors.",
+    "publication": "Publication and participation",
+    "isbnProceedings": "Accepted contributions are published in ISBN proceedings.",
+    "registrationRequired": "Registration is required to participate.",
+    "paymentProof": "Proof of payment is required.",
+    "invitationLetters": "An invitation letter may be issued.",
+    "languages": { "fr": "French", "en": "English", "ar": "Arabic" },
+    "outcomes": {
+      "acceptance": "acceptance",
+      "conditional-revision": "conditional revision",
+      "rejection": "rejection"
+    }
   }
 }

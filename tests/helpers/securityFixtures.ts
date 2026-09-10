@@ -18,6 +18,7 @@ export async function createPublishedLiveEdition(
       endDate: '2099-06-03T00:00:00.000Z',
       editionStatus: 'live',
       submissionsEnabled: true,
+      registrationEnabled: true,
       submissionDeadline: '2099-05-01T00:00:00.000Z',
       _status: 'published',
     },

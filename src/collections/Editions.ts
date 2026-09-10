@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import { APIError, type CollectionConfig } from 'payload'
 
 import { isAdmin, isAdminOrEditor, publishedOrAdminEditor } from '../access'
 import { revalidateSiteAfterChange, revalidateSiteAfterDelete } from '../hooks/revalidateSite'
@@ -17,6 +17,56 @@ export const Editions: CollectionConfig = {
     group: 'Content',
   },
   hooks: {
+    beforeValidate: [
+      ({ data, originalDoc }) => {
+        if (!data) return data
+        const dateStatus = data.conferenceDateStatus ?? originalDoc?.conferenceDateStatus ?? 'confirmed'
+        const startDate = data.startDate !== undefined ? data.startDate : originalDoc?.startDate
+        const endDate = data.endDate !== undefined ? data.endDate : originalDoc?.endDate
+        const candidates =
+          data.conferenceDateCandidates ?? originalDoc?.conferenceDateCandidates ?? []
+
+        if (dateStatus === 'unresolved') {
+          if (startDate || endDate) {
+            throw new APIError(
+              'Unresolved conference dates must not publish a definitive start or end date.',
+              400,
+              undefined,
+              true,
+            )
+          }
+          if (candidates.length < 2) {
+            throw new APIError(
+              'At least two sourced candidates are required for an unresolved conference date.',
+              400,
+              undefined,
+              true,
+            )
+          }
+        } else if (!startDate || !endDate) {
+          throw new APIError(
+            'Confirmed and provisional conference dates require both a start and end date.',
+            400,
+            undefined,
+            true,
+          )
+        }
+        if (dateStatus === 'provisional') {
+          if (
+            candidates.length < 2 ||
+            !(data.conferenceDateNote ?? originalDoc?.conferenceDateNote)
+          ) {
+            throw new APIError(
+              'A provisional conference date requires the sourced candidates and an editorial note.',
+              400,
+              undefined,
+              true,
+            )
+          }
+        }
+        return data
+      },
+    ],
     afterChange: [revalidateSiteAfterChange],
     afterDelete: [revalidateSiteAfterDelete],
   },
@@ -45,6 +95,11 @@ export const Editions: CollectionConfig = {
       localized: true,
     },
     {
+      name: 'editionNumber',
+      type: 'number',
+      admin: { description: 'Ordinal edition number, when the official source states it.' },
+    },
+    {
       name: 'theme',
       type: 'text',
       localized: true,
@@ -53,8 +108,40 @@ export const Editions: CollectionConfig = {
     {
       type: 'row',
       fields: [
-        { name: 'startDate', type: 'date', required: true },
-        { name: 'endDate', type: 'date', required: true },
+        { name: 'startDate', type: 'date' },
+        { name: 'endDate', type: 'date' },
+      ],
+    },
+    {
+      name: 'conferenceDateStatus',
+      type: 'select',
+      defaultValue: 'confirmed',
+      options: [
+        { label: 'Confirmed', value: 'confirmed' },
+        { label: 'Provisional working date', value: 'provisional' },
+        { label: 'Unresolved source conflict', value: 'unresolved' },
+      ],
+      admin: { description: 'Use unresolved when official sources disagree.' },
+    },
+    {
+      name: 'conferenceDateNote',
+      type: 'textarea',
+      localized: true,
+      admin: {
+        description: 'Editorial provenance and confirmation status for a provisional date.',
+        condition: (_, siblingData) => siblingData?.conferenceDateStatus === 'provisional',
+      },
+    },
+    {
+      name: 'conferenceDateCandidates',
+      type: 'array',
+      admin: {
+        description: 'Sourced alternatives shown publicly while the conference date is unresolved.',
+        condition: (_, siblingData) => siblingData?.conferenceDateStatus === 'unresolved',
+      },
+      fields: [
+        { name: 'date', type: 'date', required: true },
+        { name: 'source', type: 'text', required: true, localized: true },
       ],
     },
     {
@@ -74,6 +161,16 @@ export const Editions: CollectionConfig = {
       admin: { description: 'Google Maps link or embed URL' },
     },
     {
+      name: 'organizers',
+      type: 'array',
+      fields: [{ name: 'name', type: 'text', required: true }],
+    },
+    {
+      name: 'contactEmail',
+      type: 'email',
+      admin: { description: 'Edition-specific public contact address.' },
+    },
+    {
       name: 'bannerImage',
       type: 'upload',
       relationTo: 'media',
@@ -91,6 +188,15 @@ export const Editions: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'Manually enables submissions until the configured deadline.',
+      },
+    },
+    {
+      name: 'registrationEnabled',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Enables the public registration workflow for this edition.',
       },
     },
     {

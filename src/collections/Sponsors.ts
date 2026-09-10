@@ -51,6 +51,23 @@ export const Sponsors: CollectionConfig = {
       ],
     },
     {
+      name: 'partnerType',
+      type: 'select',
+      defaultValue: 'organization',
+      options: [
+        { label: 'Organization', value: 'organization' },
+        { label: 'Journal / publication', value: 'journal' },
+      ],
+    },
+    {
+      name: 'partnerScope',
+      type: 'select',
+      options: [
+        { label: 'National', value: 'national' },
+        { label: 'International', value: 'international' },
+      ],
+    },
+    {
       name: 'website',
       type: 'text',
     },

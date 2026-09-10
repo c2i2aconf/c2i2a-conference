@@ -1,13 +1,13 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import Image from 'next/image'
-import { CalendarDays, MapPin } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import type { Metadata } from 'next'
 
 import { getLiveEdition } from '@/lib/queries'
-import { formatDate } from '@/lib/dates'
 import { PageHero } from '@/components/sections/PageHero'
 import { Reveal } from '@/components/motion/Reveal'
+import { ConferenceDateDisplay } from '@/components/sections/ConferenceDateDisplay'
 
 // CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
 export const revalidate = 3600
@@ -48,16 +48,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 <RichText data={edition.description} />
               </article>
               <div className="mt-10 flex flex-wrap gap-3 text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-1.5">
-                  <CalendarDays className="h-4 w-4 text-primary" />
-                  {formatDate(edition.startDate, locale, {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                  {edition.endDate !== edition.startDate &&
-                    ` – ${formatDate(edition.endDate, locale, { day: 'numeric', month: 'long', year: 'numeric' })}`}
-                </span>
+                <ConferenceDateDisplay edition={edition} locale={locale} />
                 {edition.venue && (
                   <span className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-1.5">
                     <MapPin className="h-4 w-4 text-primary" />

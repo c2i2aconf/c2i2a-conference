@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Building2, Mail, Share2 } from 'lucide-react'
 import type { Metadata } from 'next'
 
-import { getSiteSettings } from '@/lib/queries'
+import { getLiveEdition, getSiteSettings } from '@/lib/queries'
 import { PageHero } from '@/components/sections/PageHero'
 import { Reveal } from '@/components/motion/Reveal'
 import { Card, CardContent } from '@/components/ui/card'
@@ -29,8 +29,8 @@ export default async function ContactPage({
   setRequestLocale(locale)
 
   const t = await getTranslations({ locale, namespace: 'contact' })
-  const settings = await getSiteSettings(locale)
-  const email = settings?.contactEmail
+  const [settings, edition] = await Promise.all([getSiteSettings(locale), getLiveEdition(locale)])
+  const email = edition?.contactEmail || settings?.contactEmail
 
   return (
     <>

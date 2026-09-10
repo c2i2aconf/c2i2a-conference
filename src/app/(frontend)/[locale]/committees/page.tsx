@@ -31,8 +31,12 @@ export default async function CommitteesPage({
   const edition = await getLiveEdition(locale)
   const committees = edition ? await getCommittees(edition.id, locale) : []
 
-  const scientific = committees.find((c) => c.type === 'scientific')
-  const organization = committees.find((c) => c.type === 'organization')
+  const committeeLabels = {
+    honorary: t('honoraryCommittee'),
+    steering: t('steeringCommittee'),
+    scientific: t('scientificCommittee'),
+    organization: t('organizationCommittee'),
+  }
 
   return (
     <>
@@ -42,13 +46,13 @@ export default async function CommitteesPage({
           <p className="text-center text-muted-foreground">{tPage('empty')}</p>
         ) : (
           <div className="space-y-12">
-            {scientific && (
-              <section>
+            {committees.map((committee) => (
+              <section key={committee.id}>
                 <h2 className="text-2xl font-bold mb-6 text-primary border-b pb-2">
-                  {t('scientificCommittee')}
+                  {committeeLabels[committee.type]}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {scientific.members?.map((member, i) => (
+                  {committee.members?.map((member, i) => (
                     <Card key={member.id || i} className="bg-card">
                       <CardContent className="p-4 flex flex-col justify-center">
                         <p className="font-semibold text-lg">{member.name}</p>
@@ -63,30 +67,7 @@ export default async function CommitteesPage({
                   ))}
                 </div>
               </section>
-            )}
-
-            {organization && (
-              <section>
-                <h2 className="text-2xl font-bold mb-6 text-primary border-b pb-2">
-                  {t('organizationCommittee')}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {organization.members?.map((member, i) => (
-                    <Card key={member.id || i} className="bg-card">
-                      <CardContent className="p-4 flex flex-col justify-center">
-                        <p className="font-semibold text-lg">{member.name}</p>
-                        {member.role && (
-                          <p className="text-primary text-sm font-medium">{member.role}</p>
-                        )}
-                        {member.affiliation && (
-                          <p className="text-muted-foreground text-sm">{member.affiliation}</p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-            )}
+            ))}
           </div>
         )}
       </div>

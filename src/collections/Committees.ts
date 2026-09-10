@@ -32,6 +32,8 @@ export const Committees: CollectionConfig = {
       type: 'select',
       required: true,
       options: [
+        { label: 'Honorary committee', value: 'honorary' },
+        { label: 'Steering committee', value: 'steering' },
         { label: 'Scientific committee', value: 'scientific' },
         { label: 'Organization committee', value: 'organization' },
       ],
