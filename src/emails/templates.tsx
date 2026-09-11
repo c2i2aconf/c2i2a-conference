@@ -147,15 +147,29 @@ export async function submissionDecisionEmail({
   locale,
   title,
   status,
-  notes,
+  decisionComments,
+  reviewReports,
 }: {
   locale: Locale
   title: string
-  status: 'accepted' | 'rejected'
-  notes?: string | null
+  status: 'accepted' | 'revision-required' | 'rejected'
+  decisionComments?: string | null
+  reviewReports?: Array<string | null | undefined>
 }) {
   const fr = locale === 'fr'
-  const accepted = status === 'accepted'
+  const outcome =
+    status === 'accepted'
+      ? fr
+        ? 'acceptée'
+        : 'accepted'
+      : status === 'revision-required'
+        ? fr
+          ? 'acceptée sous réserve de modifications'
+          : 'conditionally accepted subject to revision'
+        : fr
+          ? 'refusée'
+          : 'rejected'
+  const reports = reviewReports?.filter((report): report is string => Boolean(report?.trim())) ?? []
   return render(
     <EmailLayout
       preview={fr ? 'Décision concernant votre soumission' : 'Decision on your submission'}
@@ -163,14 +177,22 @@ export async function submissionDecisionEmail({
     >
       <Text>
         {fr
-          ? `Votre soumission « ${title} » a été ${accepted ? 'acceptée' : 'refusée'}.`
-          : `Your submission “${title}” has been ${accepted ? 'accepted' : 'rejected'}.`}
+          ? `Votre soumission « ${title} » a été ${outcome}.`
+          : `Your submission “${title}” has been ${outcome}.`}
       </Text>
-      {notes ? (
+      {decisionComments ? (
         <Section style={{ borderLeft: '3px solid #d5a72e', paddingLeft: '16px' }}>
-          <Text>{notes}</Text>
+          <Text>{decisionComments}</Text>
         </Section>
       ) : null}
+      {reports.map((report, index) => (
+        <Section key={index} style={{ marginTop: '20px' }}>
+          <Text style={{ fontWeight: 700 }}>
+            {fr ? `Rapport anonymisé ${index + 1}` : `Anonymized review ${index + 1}`}
+          </Text>
+          <Text>{report}</Text>
+        </Section>
+      ))}
     </EmailLayout>,
   )
 }

@@ -87,6 +87,7 @@ export async function submitPaper(formData: FormData, locale: 'fr' | 'en'): Prom
           abstract,
           file: uploaded.id,
           locale,
+          reviewState: 'unassigned',
           status: 'pending',
         },
         user,

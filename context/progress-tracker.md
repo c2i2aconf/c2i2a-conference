@@ -263,3 +263,33 @@ The project does not need a rewrite. The next highest-value work is to make the 
 - [x] No hardcoded edition facts added to React components.
 - [x] 2024 and 2025 remain independent Payload-driven historical archives.
 - [x] No commit or push performed.
+
+## ICAIA peer-review workflow — 2026-09-11
+
+### Completed
+
+- [x] Mapped the existing single submission-level reviewer decision/notes architecture to the smallest safe assignment/report model before changing schema.
+- [x] Added edition/submission/reviewer-scoped `reviewer-assignments`, using immutable reviewer slots 1–3 and database-unique reviewer/submission and submission/slot keys.
+- [x] Kept the normal target at two independent reports and allowed a third reviewer only after two completed categorical recommendations differ.
+- [x] Added accept, revision/conditional acceptance, and reject reviewer recommendations without inventing scoring criteria.
+- [x] Added editor-visible derived review state without automatically assigning a reviewer or deciding a submission.
+- [x] Restricted reviewers to assigned submissions, assigned private files, and their own open report; reviewers cannot self-assign, alter submission workflow/content fields, read another report, or edit after completion/final decision.
+- [x] Moved final decisions to admins/editors and added the `revision-required` outcome.
+- [x] Split private legacy/editor notes from author-facing editorial comments and removed private notes from decision emails.
+- [x] Released only completed anonymized reports to the owning author after an editorial outcome, using Payload collection/field access plus an explicit safe portal DTO.
+- [x] Verified reviewer identity, editor-only notes, assignment metadata, and other users' data remain hidden through Local API, REST, GraphQL, and version-history reads.
+- [x] Enabled Payload versions for assignment/report auditability; assignment relations and timestamps are server-managed.
+- [x] Generated and reviewed `20260910_171823_peer_review_workflow` and regenerated Payload types.
+- [x] Applied the additive migration only to guarded `TEST_DATABASE_URL`; no test database reset or `migrate:fresh` was used.
+- [x] Added 8 adversarial peer-review integration tests covering all requested assignment, isolation, report, disagreement, third-review, decision, cross-edition, anonymity, and email boundaries.
+- [x] Verification passes: 7 integration files / 39 tests, lint with zero warnings, TypeScript, production build (39 static pages), and targeted review-version anonymity checks.
+- [x] `/fr`, `/en`, `/fr/archive/2024`, `/en/archive/2024`, `/fr/archive/2025`, and `/en/archive/2025` all return HTTP 200 against `conference-tests`.
+- [x] Public submission and registration gates remain disabled for ICAIA 2027; no 2024/2025/2027 factual content was changed.
+- [x] No commit or push performed.
+
+### Remaining risks / deferred
+
+- [ ] Decision email delivery still has no durable outbox/retry mechanism (pre-existing risk).
+- [ ] Organizer confirmation may refine whether every categorical recommendation difference is “material disagreement.”
+- [ ] Revision-round resubmission, camera-ready files, payment/proof, invitation letters, and journal submission remain explicitly deferred.
+- [ ] Owner review is required before commit or push.

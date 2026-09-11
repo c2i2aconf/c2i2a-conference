@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     registrations: Registration;
     submissions: Submission;
+    'reviewer-assignments': ReviewerAssignment;
     'submission-files': SubmissionFile;
     'magic-links': MagicLink;
     sessions: Session;
@@ -93,6 +94,7 @@ export interface Config {
   collectionsSelect: {
     registrations: RegistrationsSelect<false> | RegistrationsSelect<true>;
     submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
+    'reviewer-assignments': ReviewerAssignmentsSelect<false> | ReviewerAssignmentsSelect<true>;
     'submission-files': SubmissionFilesSelect<false> | SubmissionFilesSelect<true>;
     'magic-links': MagicLinksSelect<false> | MagicLinksSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
@@ -357,8 +359,11 @@ export interface Submission {
   abstract: string;
   file: number | SubmissionFile;
   locale: 'fr' | 'en';
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'revision-required' | 'accepted' | 'rejected';
   reviewNotes?: string | null;
+  authorDecisionComments?: string | null;
+  reviewState:
+    'unassigned' | 'in-review' | 'ready-for-decision' | 'third-review-recommended' | 'third-review-in-progress';
   updatedAt: string;
   createdAt: string;
 }
@@ -379,6 +384,29 @@ export interface SubmissionFile {
   filesize?: number | null;
   width?: number | null;
   height?: number | null;
+}
+/**
+ * Assign two independent reviewers normally. Slot 3 becomes available only after differing completed primary reviews.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviewer-assignments".
+ */
+export interface ReviewerAssignment {
+  id: number;
+  edition: number | Edition;
+  submission: number | Submission;
+  reviewer: number | User;
+  reviewerNumber: '1' | '2' | '3';
+  status: 'assigned' | 'completed';
+  recommendation?: ('accept' | 'revision' | 'reject') | null;
+  authorComments?: string | null;
+  editorComments?: string | null;
+  assignedAt: string;
+  submittedAt?: string | null;
+  assignmentKey: string;
+  slotKey: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -664,6 +692,10 @@ export interface PayloadLockedDocument {
         value: number | Submission;
       } | null)
     | ({
+        relationTo: 'reviewer-assignments';
+        value: number | ReviewerAssignment;
+      } | null)
+    | ({
         relationTo: 'submission-files';
         value: number | SubmissionFile;
       } | null)
@@ -796,6 +828,28 @@ export interface SubmissionsSelect<T extends boolean = true> {
   locale?: T;
   status?: T;
   reviewNotes?: T;
+  authorDecisionComments?: T;
+  reviewState?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviewer-assignments_select".
+ */
+export interface ReviewerAssignmentsSelect<T extends boolean = true> {
+  edition?: T;
+  submission?: T;
+  reviewer?: T;
+  reviewerNumber?: T;
+  status?: T;
+  recommendation?: T;
+  authorComments?: T;
+  editorComments?: T;
+  assignedAt?: T;
+  submittedAt?: T;
+  assignmentKey?: T;
+  slotKey?: T;
   updatedAt?: T;
   createdAt?: T;
 }

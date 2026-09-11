@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { canAccessAdmin, isAdminOrOwnUser, isAdminOrReviewerField } from '@/access'
+import { canAccessAdmin, isAdminOrOwnUser } from '@/access'
 import { Registrations } from '@/collections/Registrations'
 import { SubmissionFiles } from '@/collections/SubmissionFiles'
 import { Submissions } from '@/collections/Submissions'
@@ -63,6 +63,7 @@ describe('workflow policy', () => {
     expect(shouldSendDecisionEmail('create', undefined, 'accepted')).toBe(false)
     expect(shouldSendDecisionEmail('update', 'pending', 'accepted')).toBe(true)
     expect(shouldSendDecisionEmail('update', 'accepted', 'accepted')).toBe(false)
+    expect(shouldSendDecisionEmail('update', 'pending', 'revision-required')).toBe(true)
     expect(shouldSendDecisionEmail('update', 'accepted', 'rejected')).toBe(true)
   })
 })
@@ -133,17 +134,18 @@ describe('Payload access and ownership hooks', () => {
     expect(await uploadHook!(hookArgs as never)).toMatchObject({ author: 7 })
   })
 
-  it('allows reviewers to edit decisions but not paper content', async () => {
+  it('keeps final decisions editor-controlled and paper content admin-controlled', async () => {
     const namedFields = Submissions.fields.filter((field) => 'name' in field)
     const titleField = namedFields.find((field) => 'name' in field && field.name === 'title')
     const statusField = namedFields.find((field) => 'name' in field && field.name === 'status')
     const reviewer = req({ id: 2, role: 'reviewer' })
+    const editor = req({ id: 3, role: 'editor' })
     const titleAccess = titleField && 'access' in titleField ? titleField.access?.update : undefined
     const statusAccess =
       statusField && 'access' in statusField ? statusField.access?.update : undefined
     expect(await titleAccess?.(reviewer)).toBe(false)
-    expect(await statusAccess?.(reviewer)).toBe(true)
-    expect(isAdminOrReviewerField(reviewer)).toBe(true)
+    expect(await statusAccess?.(reviewer)).toBe(false)
+    expect(await statusAccess?.(editor)).toBe(true)
   })
 
   it('only auto-links a registration when the authenticated email matches', async () => {
