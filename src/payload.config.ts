@@ -18,6 +18,7 @@ import { MagicLinks } from './collections/MagicLinks'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Registrations } from './collections/Registrations'
+import { ReviewerAssignments } from './collections/ReviewerAssignments'
 import { Rooms } from './collections/Rooms'
 import { Sessions } from './collections/Sessions'
 import { Speakers } from './collections/Speakers'
@@ -54,6 +55,7 @@ export default buildConfig({
     // Workflow (attendee-facing data)
     Registrations,
     Submissions,
+    ReviewerAssignments,
     SubmissionFiles,
     MagicLinks,
     // Program

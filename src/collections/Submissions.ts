@@ -1,20 +1,27 @@
-import { APIError, type CollectionConfig } from 'payload'
+import { APIError, type CollectionConfig, type FieldAccess } from 'payload'
 import { submissionDecisionEmail } from '@/emails/templates'
 import { shouldSendDecisionEmail } from '@/lib/workflow-policy'
 import { relationshipID, requireOpenSubmissionEdition } from '@/lib/workflow-boundary'
 
 import {
+  canReadSubmissions,
   isAdmin,
   isAdminField,
-  isAdminOrReviewer,
-  isAdminOrReviewerField,
-  isAdminReviewerOrAuthor,
+  isAdminOrEditor,
+  isAdminOrEditorField,
   isPortalUserOrAdmin,
 } from '../access'
 
+const canReadAuthorDecisionComments: FieldAccess = ({ doc, req: { user } }) => {
+  if (user?.role === 'admin' || user?.role === 'editor') return true
+  return (
+    doc?.status === 'revision-required' || doc?.status === 'accepted' || doc?.status === 'rejected'
+  )
+}
+
 /**
  * Paper / abstract submissions by authors.
- * Reviewers update status + notes → hook emails the author via Resend.
+ * Reviewer reports live in reviewer-assignments; editors make the final decision here.
  */
 export const Submissions: CollectionConfig = {
   slug: 'submissions',
@@ -25,8 +32,8 @@ export const Submissions: CollectionConfig = {
   },
   access: {
     create: isPortalUserOrAdmin,
-    read: isAdminReviewerOrAuthor,
-    update: isAdminOrReviewer,
+    read: canReadSubmissions,
+    update: isAdminOrEditor,
     delete: isAdmin,
   },
   fields: [
@@ -83,24 +90,56 @@ export const Submissions: CollectionConfig = {
       defaultValue: 'pending',
       options: [
         { label: 'Pending review', value: 'pending' },
+        { label: 'Revision / conditional acceptance', value: 'revision-required' },
         { label: 'Accepted', value: 'accepted' },
         { label: 'Rejected', value: 'rejected' },
       ],
       access: {
         create: isAdminField,
-        update: isAdminOrReviewerField,
+        update: isAdminOrEditorField,
       },
       admin: { position: 'sidebar' },
     },
     {
       name: 'reviewNotes',
+      label: 'Editor-only notes',
       type: 'textarea',
       access: {
-        read: isAdminOrReviewerField,
-        create: isAdminOrReviewerField,
-        update: isAdminOrReviewerField,
+        read: isAdminOrEditorField,
+        create: isAdminOrEditorField,
+        update: isAdminOrEditorField,
       },
       admin: { position: 'sidebar' },
+    },
+    {
+      name: 'authorDecisionComments',
+      label: 'Decision comments for the author',
+      type: 'textarea',
+      access: {
+        read: canReadAuthorDecisionComments,
+        create: isAdminOrEditorField,
+        update: isAdminOrEditorField,
+      },
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'reviewState',
+      type: 'select',
+      required: true,
+      defaultValue: 'unassigned',
+      options: [
+        { label: 'Unassigned', value: 'unassigned' },
+        { label: 'In review', value: 'in-review' },
+        { label: 'Ready for editorial decision', value: 'ready-for-decision' },
+        { label: 'Third review recommended', value: 'third-review-recommended' },
+        { label: 'Third review in progress', value: 'third-review-in-progress' },
+      ],
+      access: {
+        read: isAdminOrEditorField,
+        create: () => false,
+        update: () => false,
+      },
+      admin: { position: 'sidebar', readOnly: true },
     },
   ],
   hooks: {
@@ -139,7 +178,9 @@ export const Submissions: CollectionConfig = {
             ...data,
             abstract,
             author: req.user.id,
+            authorDecisionComments: undefined,
             reviewNotes: undefined,
+            reviewState: 'unassigned',
             status: 'pending',
             title,
           }
@@ -160,6 +201,20 @@ export const Submissions: CollectionConfig = {
             id: authorId,
             overrideAccess: true,
           })
+          const reviews = await req.payload.find({
+            collection: 'reviewer-assignments',
+            depth: 0,
+            overrideAccess: true,
+            pagination: false,
+            req,
+            sort: 'reviewerNumber',
+            where: {
+              and: [
+                { submission: { equals: doc.id } },
+                { status: { equals: 'completed' } },
+              ],
+            },
+          })
           await req.payload.sendEmail({
             to: author.email,
             subject:
@@ -170,7 +225,8 @@ export const Submissions: CollectionConfig = {
               locale: doc.locale === 'en' ? 'en' : 'fr',
               title: doc.title,
               status: doc.status,
-              notes: doc.reviewNotes,
+              decisionComments: doc.authorDecisionComments,
+              reviewReports: reviews.docs.map((review) => review.authorComments),
             }),
           })
         } catch (error) {

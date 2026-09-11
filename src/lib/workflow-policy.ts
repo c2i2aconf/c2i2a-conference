@@ -2,6 +2,9 @@ export const MAGIC_LINK_EMAIL_LIMIT = 3
 export const MAGIC_LINK_IP_LIMIT = 20
 export const SUBMISSION_FILE_LIMIT = 4 * 1024 * 1024
 
+export const REVIEW_RECOMMENDATIONS = ['accept', 'revision', 'reject'] as const
+export type ReviewRecommendation = (typeof REVIEW_RECOMMENDATIONS)[number]
+
 export function isPortalRole(role: string | null | undefined) {
   return role === 'author' || role === 'attendee'
 }
@@ -31,6 +34,16 @@ export function shouldSendDecisionEmail(
   return (
     operation === 'update' &&
     previousStatus !== status &&
-    (status === 'accepted' || status === 'rejected')
+    (status === 'accepted' || status === 'revision-required' || status === 'rejected')
   )
+}
+
+/** Recommendation categories are intentionally coarse; differing primary outcomes need editorial review. */
+export function reviewsMateriallyDisagree(
+  recommendations: Array<ReviewRecommendation | null | undefined>,
+) {
+  const completed = recommendations.filter(
+    (recommendation): recommendation is ReviewRecommendation => recommendation != null,
+  )
+  return completed.length >= 2 && new Set(completed.slice(0, 2)).size > 1
 }

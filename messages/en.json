@@ -188,8 +188,17 @@
     },
     "status": {
       "pending": "Pending",
+      "revision-required": "Conditionally accepted subject to revision",
       "accepted": "Accepted",
       "rejected": "Rejected"
+    },
+    "decisionComments": "Editorial message",
+    "reviewReport": "Anonymized review {number}",
+    "recommendation": "Recommendation: {recommendation}",
+    "recommendations": {
+      "accept": "accept",
+      "revision": "revision / conditional acceptance",
+      "reject": "reject"
     }
   },
   "about": {

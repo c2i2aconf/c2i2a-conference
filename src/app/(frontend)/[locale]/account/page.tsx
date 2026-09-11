@@ -59,6 +59,45 @@ export default async function AccountPage({
     }),
   ])
 
+  const submissionIDs = submissions.docs.map((submission) => submission.id)
+  const completedReviews = submissionIDs.length
+    ? await payload.find({
+        collection: 'reviewer-assignments',
+        depth: 0,
+        overrideAccess: false,
+        pagination: false,
+        select: {
+          authorComments: true,
+          recommendation: true,
+          submission: true,
+          submittedAt: true,
+        },
+        sort: 'reviewerNumber',
+        user,
+        where: {
+          and: [
+            { submission: { in: submissionIDs } },
+            { status: { equals: 'completed' } },
+          ],
+        },
+      })
+    : { docs: [] }
+  const safeReviewsBySubmission = new Map<
+    number,
+    Array<{ authorComments: string; recommendation: 'accept' | 'revision' | 'reject' }>
+  >()
+  for (const review of completedReviews.docs) {
+    if (!review.authorComments || !review.recommendation) continue
+    const submissionID =
+      typeof review.submission === 'number' ? review.submission : review.submission.id
+    const reports = safeReviewsBySubmission.get(submissionID) ?? []
+    reports.push({
+      authorComments: review.authorComments,
+      recommendation: review.recommendation,
+    })
+    safeReviewsBySubmission.set(submissionID, reports)
+  }
+
   const statusVariant = (status: string) =>
     status === 'accepted' ? 'default' : status === 'rejected' ? 'destructive' : 'secondary'
 
@@ -125,14 +164,34 @@ export default async function AccountPage({
               ) : (
                 <ul className="divide-y divide-border">
                   {submissions.docs.map((sub) => (
-                    <li
-                      key={sub.id}
-                      className="flex items-center justify-between gap-4 py-3 text-sm"
-                    >
-                      <span className="min-w-0 truncate font-medium">{sub.title}</span>
-                      <Badge variant={statusVariant(sub.status)}>
-                        {tSub(`status.${sub.status}`)}
-                      </Badge>
+                    <li key={sub.id} className="space-y-4 py-4 text-sm">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="min-w-0 truncate font-medium">{sub.title}</span>
+                        <Badge variant={statusVariant(sub.status)}>
+                          {tSub(`status.${sub.status}`)}
+                        </Badge>
+                      </div>
+                      {sub.authorDecisionComments ? (
+                        <div className="rounded-lg border border-border bg-muted/40 p-4">
+                          <p className="mb-1 font-medium">{tSub('decisionComments')}</p>
+                          <p className="text-muted-foreground">{sub.authorDecisionComments}</p>
+                        </div>
+                      ) : null}
+                      {(safeReviewsBySubmission.get(sub.id) ?? []).map((review, index) => (
+                        <div key={index} className="rounded-lg border border-border p-4">
+                          <p className="font-medium">
+                            {tSub('reviewReport', { number: index + 1 })}
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {tSub('recommendation', {
+                              recommendation: tSub(
+                                `recommendations.${review.recommendation}`,
+                              ),
+                            })}
+                          </p>
+                          <p className="mt-2 text-muted-foreground">{review.authorComments}</p>
+                        </div>
+                      ))}
                     </li>
                   ))}
                 </ul>

@@ -1,6 +1,6 @@
 import { APIError, type CollectionConfig } from 'payload'
 
-import { isAdmin, isAdminField, isAdminReviewerOrAuthor, isPortalUserOrAdmin } from '../access'
+import { canReadSubmissionFiles, isAdmin, isAdminField, isPortalUserOrAdmin } from '../access'
 import { requireAnyOpenSubmissionEdition } from '../lib/workflow-boundary'
 import { hasPdfSignature, SUBMISSION_FILE_LIMIT } from '../lib/workflow-policy'
 
@@ -14,7 +14,7 @@ export const SubmissionFiles: CollectionConfig = {
     group: 'Workflow',
   },
   access: {
-    read: isAdminReviewerOrAuthor,
+    read: canReadSubmissionFiles,
     create: isPortalUserOrAdmin,
     update: isAdmin,
     delete: isAdmin,
