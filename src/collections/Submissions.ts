@@ -4,6 +4,7 @@ import { shouldSendDecisionEmail } from '@/lib/workflow-policy'
 import { relationshipID, requireOpenSubmissionEdition } from '@/lib/workflow-boundary'
 
 import {
+  canReadSubmissionAuthor,
   canReadSubmissions,
   isAdmin,
   isAdminField,
@@ -11,6 +12,11 @@ import {
   isAdminOrEditorField,
   isPortalUserOrAdmin,
 } from '../access'
+import {
+  closeOpenRevisionRounds,
+  isInternalRevisionTransition,
+  releaseCompletedReviews,
+} from '@/lib/revision-workflow'
 
 const canReadAuthorDecisionComments: FieldAccess = ({ doc, req: { user } }) => {
   if (user?.role === 'admin' || user?.role === 'editor') return true
@@ -50,7 +56,7 @@ export const Submissions: CollectionConfig = {
       relationTo: 'users',
       required: true,
       defaultValue: ({ user }: { user?: { id: string } | null }) => user?.id,
-      access: { update: isAdminField },
+      access: { read: canReadSubmissionAuthor, update: isAdminField },
     },
     {
       name: 'title',
@@ -141,11 +147,56 @@ export const Submissions: CollectionConfig = {
       },
       admin: { position: 'sidebar', readOnly: true },
     },
+    {
+      name: 'cameraReadyFile',
+      label: 'Camera-ready / final manuscript',
+      type: 'upload',
+      relationTo: 'submission-files',
+      access: { read: canReadSubmissionAuthor, create: () => false, update: () => false },
+      admin: { position: 'sidebar', readOnly: true },
+    },
+    {
+      name: 'cameraReadySubmittedAt',
+      type: 'date',
+      access: { read: canReadSubmissionAuthor, create: () => false, update: () => false },
+      admin: { position: 'sidebar', readOnly: true },
+    },
   ],
   hooks: {
     beforeValidate: [
-      async ({ data, req, operation }) => {
-        if (operation !== 'create' || !data) return data
+      async ({ data, originalDoc, req, operation }) => {
+        if (!data) return data
+        if (operation === 'update') {
+          const previousStatus = originalDoc?.status
+          const nextStatus = data.status ?? previousStatus
+          if (nextStatus !== previousStatus) {
+            const internal = isInternalRevisionTransition(req)
+            const internalTransition =
+              internal &&
+              ((previousStatus === 'pending' && nextStatus === 'revision-required') ||
+                (previousStatus === 'revision-required' && nextStatus === 'pending'))
+            const editorial = req.user?.role === 'admin' || req.user?.role === 'editor'
+            const editorialDecision =
+              editorial &&
+              ((previousStatus === 'pending' &&
+                (nextStatus === 'accepted' || nextStatus === 'rejected') &&
+                originalDoc?.reviewState === 'ready-for-decision') ||
+                (previousStatus === 'revision-required' && nextStatus === 'rejected'))
+            if (!internalTransition && !editorialDecision) {
+              throw new APIError('Invalid editorial workflow transition.', 409, undefined, true)
+            }
+          }
+          if (!isInternalRevisionTransition(req)) {
+            return {
+              ...data,
+              cameraReadyFile: originalDoc?.cameraReadyFile,
+              cameraReadySubmittedAt: originalDoc?.cameraReadySubmittedAt,
+              reviewState: originalDoc?.reviewState,
+            }
+          }
+          return data
+        }
+
         const title = typeof data.title === 'string' ? data.title.trim() : data.title
         const abstract = typeof data.abstract === 'string' ? data.abstract.trim() : data.abstract
         if (!title || !abstract) {
@@ -190,6 +241,14 @@ export const Submissions: CollectionConfig = {
     ],
     afterChange: [
       async ({ doc, previousDoc, operation, req }) => {
+        if (
+          operation === 'update' &&
+          previousDoc?.status !== doc.status &&
+          (doc.status === 'accepted' || doc.status === 'rejected')
+        ) {
+          await releaseCompletedReviews(req, doc.id)
+          if (doc.status === 'rejected') await closeOpenRevisionRounds(req, doc.id)
+        }
         if (!shouldSendDecisionEmail(operation, previousDoc?.status, doc.status)) {
           return doc
         }
@@ -209,10 +268,7 @@ export const Submissions: CollectionConfig = {
             req,
             sort: 'reviewerNumber',
             where: {
-              and: [
-                { submission: { equals: doc.id } },
-                { status: { equals: 'completed' } },
-              ],
+              and: [{ submission: { equals: doc.id } }, { status: { equals: 'completed' } }],
             },
           })
           await req.payload.sendEmail({

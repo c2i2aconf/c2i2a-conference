@@ -199,6 +199,35 @@
       "accept": "accepter",
       "revision": "révision / acceptation conditionnelle",
       "reject": "rejeter"
+    },
+    "revisionRound": "Tour de révision {number}",
+    "revisionDeadline": "Date limite : {deadline}",
+    "revisionSubmitted": "Votre manuscrit révisé a été déposé.",
+    "revisionClosed": "Ce tour de révision est fermé ; aucun dépôt n’est possible.",
+    "revisionStatus": {
+      "open": "Révision requise",
+      "submitted": "Révision déposée",
+      "closed": "Tour fermé"
+    },
+    "finalAcceptance": "Acceptation éditoriale définitive",
+    "cameraReadyRequired": "Déposez maintenant le manuscrit final prêt à publier.",
+    "cameraReadySubmitted": "Votre manuscrit final prêt à publier a été déposé.",
+    "workflowUpload": {
+      "revisionFile": "Manuscrit révisé anonymisé (PDF)",
+      "cameraReadyFile": "Manuscrit final prêt à publier (PDF)",
+      "fileHint": "PDF valide — 4 Mo maximum. Le dépôt est définitif pour cette étape.",
+      "submit": "Déposer",
+      "revisionSuccess": "Révision déposée.",
+      "cameraReadySuccess": "Manuscrit final déposé.",
+      "errors": {
+        "unauthorized": "Connectez-vous avec le compte auteur propriétaire de la soumission.",
+        "missing_fields": "Sélectionnez un fichier.",
+        "invalid_file": "Sélectionnez un fichier PDF valide de 4 Mo maximum.",
+        "not_open": "Ce tour de révision n’est plus ouvert.",
+        "not_accepted": "L’acceptation éditoriale définitive est requise.",
+        "already_submitted": "Un fichier a déjà été déposé pour cette étape.",
+        "server_error": "Le dépôt n’a pas pu être enregistré. Réessayez plus tard."
+      }
     }
   },
   "about": {

@@ -47,7 +47,7 @@ async function createUser(role: User['role']) {
 async function createPDF(author: User) {
   const file = await payload.create({
     collection: 'submission-files',
-    data: { author: author.id },
+    data: { author: author.id, kind: 'original-review' },
     file: {
       data: pdf,
       mimetype: 'application/pdf',

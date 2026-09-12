@@ -8,6 +8,7 @@ import { Users } from '@/collections/Users'
 import {
   hasPdfSignature,
   isPortalRole,
+  isRevisionRoundOpen,
   isSubmissionWindowOpen,
   shouldSendDecisionEmail,
   shouldThrottleMagicLink,
@@ -63,8 +64,20 @@ describe('workflow policy', () => {
     expect(shouldSendDecisionEmail('create', undefined, 'accepted')).toBe(false)
     expect(shouldSendDecisionEmail('update', 'pending', 'accepted')).toBe(true)
     expect(shouldSendDecisionEmail('update', 'accepted', 'accepted')).toBe(false)
-    expect(shouldSendDecisionEmail('update', 'pending', 'revision-required')).toBe(true)
+    expect(shouldSendDecisionEmail('update', 'pending', 'revision-required')).toBe(false)
     expect(shouldSendDecisionEmail('update', 'accepted', 'rejected')).toBe(true)
+  })
+
+  it('opens only active revision rounds before their optional deadline', () => {
+    const now = Date.parse('2027-01-01T00:00:00Z')
+    expect(isRevisionRoundOpen({ status: 'open' }, now)).toBe(true)
+    expect(isRevisionRoundOpen({ status: 'open', deadline: '2027-02-01T00:00:00Z' }, now)).toBe(
+      true,
+    )
+    expect(isRevisionRoundOpen({ status: 'open', deadline: '2026-12-31T23:59:59Z' }, now)).toBe(
+      false,
+    )
+    expect(isRevisionRoundOpen({ status: 'submitted' }, now)).toBe(false)
   })
 })
 

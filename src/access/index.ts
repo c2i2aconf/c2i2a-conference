@@ -55,6 +55,24 @@ async function assignedSubmissionIDs(req: Parameters<Access>[0]['req']) {
   })
 }
 
+async function assignedRevisionRoundIDs(req: Parameters<Access>[0]['req']) {
+  if (!req.user) return []
+  const assignments = await req.payload.find({
+    collection: 'reviewer-assignments',
+    depth: 0,
+    overrideAccess: true,
+    pagination: false,
+    req,
+    select: { revisionRound: true },
+    where: { reviewer: { equals: req.user.id } },
+  })
+  return assignments.docs.flatMap((assignment) => {
+    const round = assignment.revisionRound
+    if (!round) return []
+    return typeof round === 'number' ? [round] : [round.id]
+  })
+}
+
 /** Submission reads are owner-scoped for authors and assignment-scoped for reviewers. */
 export const canReadSubmissions: Access = async ({ req }) => {
   const { user } = req
@@ -73,24 +91,84 @@ export const canReadSubmissionFiles: Access = async ({ req }) => {
   if (!user) return false
   if (user.role === 'admin' || user.role === 'editor') return true
   if (user.role === 'reviewer') {
-    const submissionIDs = await assignedSubmissionIDs(req)
-    if (!submissionIDs.length) return false
-    const submissions = await req.payload.find({
-      collection: 'submissions',
+    const assignments = await req.payload.find({
+      collection: 'reviewer-assignments',
       depth: 0,
       overrideAccess: true,
       pagination: false,
       req,
-      select: { file: true },
-      where: { id: { in: submissionIDs } },
+      select: { revisionRound: true, submission: true },
+      where: { reviewer: { equals: user.id } },
     })
-    const fileIDs = submissions.docs.flatMap((submission) => {
-      const file = submission.file
-      return typeof file === 'number' ? [file] : [file.id]
+    const originalSubmissionIDs = assignments.docs.flatMap((assignment) => {
+      if (assignment.revisionRound) return []
+      const submission = assignment.submission
+      return typeof submission === 'number' ? [submission] : [submission.id]
     })
+    const revisionRoundIDs = assignments.docs.flatMap((assignment) => {
+      const round = assignment.revisionRound
+      if (!round) return []
+      return typeof round === 'number' ? [round] : [round.id]
+    })
+    const [submissions, rounds] = await Promise.all([
+      originalSubmissionIDs.length
+        ? req.payload.find({
+            collection: 'submissions',
+            depth: 0,
+            overrideAccess: true,
+            pagination: false,
+            req,
+            select: { file: true },
+            where: { id: { in: originalSubmissionIDs } },
+          })
+        : { docs: [] },
+      revisionRoundIDs.length
+        ? req.payload.find({
+            collection: 'revision-rounds',
+            depth: 0,
+            overrideAccess: true,
+            pagination: false,
+            req,
+            select: { revisedManuscript: true },
+            where: { id: { in: revisionRoundIDs } },
+          })
+        : { docs: [] },
+    ])
+    const fileIDs = [
+      ...submissions.docs.flatMap((submission) => {
+        const file = submission.file
+        return typeof file === 'number' ? [file] : [file.id]
+      }),
+      ...rounds.docs.flatMap((round) => {
+        const file = round.revisedManuscript
+        if (!file) return []
+        return typeof file === 'number' ? [file] : [file.id]
+      }),
+    ]
     return fileIDs.length ? ({ id: { in: fileIDs } } as Where) : false
   }
   return { author: { equals: user.id } } as Where
+}
+
+/** Revision requests are visible to editorial staff, their author, and explicitly assigned reviewers. */
+export const canReadRevisionRounds: Access = async ({ req }) => {
+  const { user } = req
+  if (!user) return false
+  if (user.role === 'admin' || user.role === 'editor') return true
+  if (user.role === 'reviewer') {
+    const roundIDs = await assignedRevisionRoundIDs(req)
+    return roundIDs.length ? ({ id: { in: roundIDs } } as Where) : false
+  }
+  const submissions = await req.payload.find({
+    collection: 'submissions',
+    depth: 0,
+    overrideAccess: true,
+    pagination: false,
+    req,
+    where: { author: { equals: user.id } },
+  })
+  const submissionIDs = submissions.docs.map((submission) => submission.id)
+  return submissionIDs.length ? ({ submission: { in: submissionIDs } } as Where) : false
 }
 
 /** Assignment/report reads: editorial staff see all, reviewers see self, authors see safe completed reports. */
@@ -105,17 +183,16 @@ export const canReadReviewerAssignments: Access = async ({ req }) => {
     overrideAccess: true,
     pagination: false,
     req,
-    where: {
-      and: [
-        { author: { equals: user.id } },
-        { status: { in: ['revision-required', 'accepted', 'rejected'] } },
-      ],
-    },
+    where: { author: { equals: user.id } },
   })
   const submissionIDs = submissions.docs.map((submission) => submission.id)
   return submissionIDs.length
     ? ({
-        and: [{ submission: { in: submissionIDs } }, { status: { equals: 'completed' } }],
+        and: [
+          { submission: { in: submissionIDs } },
+          { status: { equals: 'completed' } },
+          { releasedToAuthorAt: { exists: true } },
+        ],
       } as Where)
     : false
 }
@@ -145,3 +222,10 @@ export const isAdminField: FieldAccess = ({ req: { user } }) => user?.role === '
 /** Field-level: only admins/editors can write. */
 export const isAdminOrEditorField: FieldAccess = ({ req: { user } }) =>
   user?.role === 'admin' || user?.role === 'editor'
+
+/** Hide author identity from reviewers while retaining owner and editorial visibility. */
+export const canReadSubmissionAuthor: FieldAccess = ({ req: { user } }) =>
+  user?.role === 'admin' ||
+  user?.role === 'editor' ||
+  user?.role === 'author' ||
+  user?.role === 'attendee'
