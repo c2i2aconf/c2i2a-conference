@@ -199,6 +199,35 @@
       "accept": "accept",
       "revision": "revision / conditional acceptance",
       "reject": "reject"
+    },
+    "revisionRound": "Revision round {number}",
+    "revisionDeadline": "Deadline: {deadline}",
+    "revisionSubmitted": "Your revised manuscript has been submitted.",
+    "revisionClosed": "This revision round is closed; upload is no longer available.",
+    "revisionStatus": {
+      "open": "Revision required",
+      "submitted": "Revision submitted",
+      "closed": "Round closed"
+    },
+    "finalAcceptance": "Final editorial acceptance",
+    "cameraReadyRequired": "Upload the final camera-ready manuscript now.",
+    "cameraReadySubmitted": "Your final camera-ready manuscript has been submitted.",
+    "workflowUpload": {
+      "revisionFile": "Revised anonymized manuscript (PDF)",
+      "cameraReadyFile": "Final camera-ready manuscript (PDF)",
+      "fileHint": "Valid PDF — 4 MB maximum. Upload is final for this stage.",
+      "submit": "Upload",
+      "revisionSuccess": "Revision submitted.",
+      "cameraReadySuccess": "Camera-ready manuscript submitted.",
+      "errors": {
+        "unauthorized": "Sign in with the author account that owns this submission.",
+        "missing_fields": "Select a file.",
+        "invalid_file": "Select a valid PDF file no larger than 4 MB.",
+        "not_open": "This revision round is no longer open.",
+        "not_accepted": "Final editorial acceptance is required.",
+        "already_submitted": "A file has already been submitted for this stage.",
+        "server_error": "The upload could not be saved. Please try again later."
+      }
     }
   },
   "about": {

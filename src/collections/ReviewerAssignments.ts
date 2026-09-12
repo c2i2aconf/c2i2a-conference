@@ -1,15 +1,7 @@
 import type { CollectionConfig, FieldAccess } from 'payload'
 
-import {
-  canReadReviewerAssignments,
-  canUpdateReviewerAssignments,
-  isAdmin,
-  isAdminOrEditor,
-} from '@/access'
-import {
-  recomputeSubmissionReviewState,
-  validateReviewAssignment,
-} from '@/lib/review-workflow'
+import { canReadReviewerAssignments, canUpdateReviewerAssignments, isAdminOrEditor } from '@/access'
+import { recomputeSubmissionReviewState, validateReviewAssignment } from '@/lib/review-workflow'
 import { relationshipID } from '@/lib/workflow-boundary'
 
 const isEditorial: FieldAccess = ({ req: { user } }) =>
@@ -38,7 +30,8 @@ export const ReviewerAssignments: CollectionConfig = {
     create: isAdminOrEditor,
     read: canReadReviewerAssignments,
     update: canUpdateReviewerAssignments,
-    delete: isAdmin,
+    delete: ({ req: { user } }) =>
+      user?.role === 'admin' ? { status: { equals: 'assigned' } } : false,
   },
   fields: [
     {
@@ -66,6 +59,17 @@ export const ReviewerAssignments: CollectionConfig = {
       index: true,
       filterOptions: { role: { equals: 'reviewer' } },
       access: { read: isEditorialOrReviewer, update: () => false },
+    },
+    {
+      name: 'revisionRound',
+      label: 'Reviewed revision round',
+      type: 'relationship',
+      relationTo: 'revision-rounds',
+      index: true,
+      access: { read: isEditorialOrReviewer, update: () => false },
+      admin: {
+        description: 'Leave empty only for review of the original manuscript.',
+      },
     },
     {
       name: 'reviewerNumber',
@@ -123,6 +127,12 @@ export const ReviewerAssignments: CollectionConfig = {
       name: 'submittedAt',
       type: 'date',
       access: { read: isAuthorSafe, update: () => false },
+      admin: { position: 'sidebar', readOnly: true },
+    },
+    {
+      name: 'releasedToAuthorAt',
+      type: 'date',
+      access: { read: isAuthorSafe, create: () => false, update: () => false },
       admin: { position: 'sidebar', readOnly: true },
     },
     {

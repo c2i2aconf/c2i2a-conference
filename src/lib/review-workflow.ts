@@ -3,6 +3,11 @@ import { APIError, type PayloadRequest } from 'payload'
 import type { ReviewRecommendation } from '@/lib/workflow-policy'
 import { reviewsMateriallyDisagree } from '@/lib/workflow-policy'
 import { relationshipID } from '@/lib/workflow-boundary'
+import {
+  getLatestSubmittedRevisionRound,
+  isInternalRevisionTransition,
+  REVISION_TRANSITION_CONTEXT,
+} from '@/lib/revision-workflow'
 
 export type SubmissionReviewState =
   | 'unassigned'
@@ -11,10 +16,8 @@ export type SubmissionReviewState =
   | 'third-review-recommended'
   | 'third-review-in-progress'
 
-export async function recomputeSubmissionReviewState(
-  req: PayloadRequest,
-  submissionID: number,
-) {
+export async function recomputeSubmissionReviewState(req: PayloadRequest, submissionID: number) {
+  const revisionRound = await getLatestSubmittedRevisionRound(req, submissionID)
   const assignments = await req.payload.find({
     collection: 'reviewer-assignments',
     depth: 0,
@@ -22,7 +25,14 @@ export async function recomputeSubmissionReviewState(
     pagination: false,
     req,
     sort: 'reviewerNumber',
-    where: { submission: { equals: submissionID } },
+    where: {
+      and: [
+        { submission: { equals: submissionID } },
+        revisionRound
+          ? { revisionRound: { equals: revisionRound.id } }
+          : { revisionRound: { exists: false } },
+      ],
+    },
   })
 
   const primary = assignments.docs.filter(
@@ -45,6 +55,7 @@ export async function recomputeSubmissionReviewState(
     collection: 'submissions',
     id: submissionID,
     data: { reviewState },
+    context: { [REVISION_TRANSITION_CONTEXT]: true },
     overrideAccess: true,
     req,
   })
@@ -81,6 +92,15 @@ export async function validateReviewAssignment({
     req,
   })
 
+  if (operation === 'create' && submission.status !== 'pending') {
+    throw new APIError(
+      'Reviewers can be assigned only while editorial review is pending.',
+      409,
+      undefined,
+      true,
+    )
+  }
+
   if (operation === 'create') {
     const reviewer = await req.payload.findByID({
       collection: 'users',
@@ -107,11 +127,43 @@ export async function validateReviewAssignment({
       )
     }
 
+    const latestRevisionRound = await getLatestSubmittedRevisionRound(req, submissionID)
+    const requestedRevisionRoundID = relationshipID(data.revisionRound)
+    if (latestRevisionRound) {
+      if (requestedRevisionRoundID !== latestRevisionRound.id) {
+        throw new APIError(
+          'A follow-up assignment must explicitly reference the current submitted revision round.',
+          400,
+          undefined,
+          true,
+        )
+      }
+      if (
+        relationshipID(latestRevisionRound.submission) !== submissionID ||
+        relationshipID(latestRevisionRound.edition) !== editionID
+      ) {
+        throw new APIError(
+          'The revision round must match the assignment submission and edition.',
+          400,
+          undefined,
+          true,
+        )
+      }
+    } else if (requestedRevisionRoundID !== null) {
+      throw new APIError(
+        'This submission has no submitted revision round to review.',
+        400,
+        undefined,
+        true,
+      )
+    }
+
     const reviewerNumber = data.reviewerNumber
     if (reviewerNumber !== '1' && reviewerNumber !== '2' && reviewerNumber !== '3') {
       throw new APIError('Reviewer slot must be 1, 2, or 3.', 400, undefined, true)
     }
 
+    const reviewScope = latestRevisionRound ? `revision-${latestRevisionRound.id}` : 'original'
     const duplicates = await req.payload.find({
       collection: 'reviewer-assignments',
       depth: 0,
@@ -120,8 +172,8 @@ export async function validateReviewAssignment({
       req,
       where: {
         or: [
-          { assignmentKey: { equals: `${submissionID}:${reviewerID}` } },
-          { slotKey: { equals: `${submissionID}:${reviewerNumber}` } },
+          { assignmentKey: { equals: `${submissionID}:${reviewScope}:${reviewerID}` } },
+          { slotKey: { equals: `${submissionID}:${reviewScope}:${reviewerNumber}` } },
         ],
       },
     })
@@ -145,6 +197,9 @@ export async function validateReviewAssignment({
         where: {
           and: [
             { submission: { equals: submissionID } },
+            latestRevisionRound
+              ? { revisionRound: { equals: latestRevisionRound.id } }
+              : { revisionRound: { exists: false } },
             { reviewerNumber: { in: ['1', '2'] } },
             { status: { equals: 'completed' } },
           ],
@@ -166,12 +221,14 @@ export async function validateReviewAssignment({
     return {
       ...data,
       assignedAt: new Date().toISOString(),
-      assignmentKey: `${submissionID}:${reviewerID}`,
+      assignmentKey: `${submissionID}:${reviewScope}:${reviewerID}`,
       authorComments: undefined,
       edition: editionID,
       editorComments: undefined,
       recommendation: undefined,
-      slotKey: `${submissionID}:${reviewerNumber}`,
+      releasedToAuthorAt: undefined,
+      revisionRound: latestRevisionRound?.id,
+      slotKey: `${submissionID}:${reviewScope}:${reviewerNumber}`,
       status: 'assigned',
       submittedAt: undefined,
     }
@@ -182,7 +239,12 @@ export async function validateReviewAssignment({
       throw new APIError('This review is closed after an editorial decision.', 409, undefined, true)
     }
     if (originalDoc?.status === 'completed') {
-      throw new APIError('A completed review cannot be edited by its reviewer.', 409, undefined, true)
+      throw new APIError(
+        'A completed review cannot be edited by its reviewer.',
+        409,
+        undefined,
+        true,
+      )
     }
   }
 
@@ -208,6 +270,10 @@ export async function validateReviewAssignment({
     edition: originalDoc?.edition,
     reviewer: originalDoc?.reviewer,
     reviewerNumber: originalDoc?.reviewerNumber,
+    releasedToAuthorAt: isInternalRevisionTransition(req)
+      ? (data.releasedToAuthorAt ?? originalDoc?.releasedToAuthorAt)
+      : originalDoc?.releasedToAuthorAt,
+    revisionRound: originalDoc?.revisionRound,
     slotKey: originalDoc?.slotKey,
     submission: originalDoc?.submission,
     submittedAt:

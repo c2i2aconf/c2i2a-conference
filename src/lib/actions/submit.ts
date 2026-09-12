@@ -66,7 +66,7 @@ export async function submitPaper(formData: FormData, locale: 'fr' | 'en'): Prom
     // Private upload; its collection hook forces ownership to this user.
     const uploaded = await payload.create({
       collection: 'submission-files',
-      data: { author: user.id },
+      data: { author: user.id, kind: 'original-review' },
       file: {
         data: buffer,
         mimetype: 'application/pdf',

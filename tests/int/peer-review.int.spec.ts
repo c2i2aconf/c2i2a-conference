@@ -29,6 +29,7 @@ const created = {
   editions: [] as number[],
   files: [] as number[],
   submissions: [] as number[],
+  revisionRounds: [] as number[],
   users: [] as number[],
 }
 
@@ -54,7 +55,7 @@ async function createSubmission(author: User, edition: number, label: string) {
   const pdf = createMinimalPDFBuffer()
   const file = await payload.create({
     collection: 'submission-files',
-    data: { author: author.id },
+    data: { author: author.id, kind: 'original-review' },
     file: {
       data: pdf,
       mimetype: 'application/pdf',
@@ -348,14 +349,13 @@ describe('ICAIA peer-review workflow', () => {
       user: editor,
     })
 
-    await expect(
-      payload.find({
-        collection: 'reviewer-assignments',
-        overrideAccess: false,
-        user: authorA,
-        where: { submission: { equals: submissionA.id } },
-      }),
-    ).rejects.toThrow()
+    const unreleased = await payload.find({
+      collection: 'reviewer-assignments',
+      overrideAccess: false,
+      user: authorA,
+      where: { submission: { equals: submissionA.id } },
+    })
+    expect(unreleased.docs).toHaveLength(0)
 
     const originalSendEmail = payload.sendEmail
     let sentHTML = ''
@@ -363,16 +363,23 @@ describe('ICAIA peer-review workflow', () => {
       sentHTML = typeof options.html === 'string' ? options.html : ''
     }) as typeof payload.sendEmail
     try {
-      await payload.update({
-        collection: 'submissions',
-        id: submissionA.id,
+      const revisionRound = await payload.create({
+        collection: 'revision-rounds',
         data: {
-          authorDecisionComments: 'Please address the reports before the final version.',
-          status: 'revision-required',
+          deadline: new Date(Date.now() + 7 * 24 * 60 * 60_000).toISOString(),
+          edition: editionA,
+          instructions: 'Please address the reports before the final version.',
+          requestedAt: new Date().toISOString(),
+          requestedBy: editor.id,
+          roundKey: 'server-managed',
+          roundNumber: 1,
+          status: 'open',
+          submission: submissionA.id,
         },
         overrideAccess: false,
         user: editor,
       })
+      created.revisionRounds.push(revisionRound.id)
     } finally {
       payload.sendEmail = originalSendEmail
     }
@@ -412,14 +419,13 @@ describe('ICAIA peer-review workflow', () => {
       expect(version.version).not.toHaveProperty('assignmentKey')
       expect(version.version).not.toHaveProperty('slotKey')
     }
-    await expect(
-      payload.find({
-        collection: 'reviewer-assignments',
-        overrideAccess: false,
-        user: authorB,
-        where: { submission: { equals: submissionA.id } },
-      }),
-    ).rejects.toThrow()
+    const unrelatedAuthor = await payload.find({
+      collection: 'reviewer-assignments',
+      overrideAccess: false,
+      user: authorB,
+      where: { submission: { equals: submissionA.id } },
+    })
+    expect(unrelatedAuthor.docs).toHaveLength(0)
 
     const login = await payload.login({
       collection: 'users',
@@ -472,9 +478,7 @@ describe('ICAIA peer-review workflow', () => {
       overrideAccess: false,
       user: authorA,
     })
-    expect(authorSubmission.authorDecisionComments).toBe(
-      'Please address the reports before the final version.',
-    )
+    expect(authorSubmission.authorDecisionComments).toBeNull()
     expect(authorSubmission).not.toHaveProperty('reviewNotes')
     expect(authorSubmission).not.toHaveProperty('reviewState')
   })
@@ -496,7 +500,6 @@ describe('ICAIA peer-review workflow', () => {
         overrideAccess: true,
       }),
     ).toMatchObject({
-      authorDecisionComments: 'Please address the reports before the final version.',
       status: 'revision-required',
     })
   })
@@ -504,6 +507,9 @@ describe('ICAIA peer-review workflow', () => {
   afterAll(async () => {
     for (const id of created.assignments.reverse()) {
       await payload.delete({ collection: 'reviewer-assignments', id, overrideAccess: true })
+    }
+    for (const id of created.revisionRounds.reverse()) {
+      await payload.delete({ collection: 'revision-rounds', id, overrideAccess: true })
     }
     for (const id of created.submissions.reverse()) {
       await payload.delete({ collection: 'submissions', id, overrideAccess: true })

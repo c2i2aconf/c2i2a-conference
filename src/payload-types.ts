@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     registrations: Registration;
     submissions: Submission;
+    'revision-rounds': RevisionRound;
     'reviewer-assignments': ReviewerAssignment;
     'submission-files': SubmissionFile;
     'magic-links': MagicLink;
@@ -94,6 +95,7 @@ export interface Config {
   collectionsSelect: {
     registrations: RegistrationsSelect<false> | RegistrationsSelect<true>;
     submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
+    'revision-rounds': RevisionRoundsSelect<false> | RevisionRoundsSelect<true>;
     'reviewer-assignments': ReviewerAssignmentsSelect<false> | ReviewerAssignmentsSelect<true>;
     'submission-files': SubmissionFilesSelect<false> | SubmissionFilesSelect<true>;
     'magic-links': MagicLinksSelect<false> | MagicLinksSelect<true>;
@@ -364,6 +366,8 @@ export interface Submission {
   authorDecisionComments?: string | null;
   reviewState:
     'unassigned' | 'in-review' | 'ready-for-decision' | 'third-review-recommended' | 'third-review-in-progress';
+  cameraReadyFile?: (number | null) | SubmissionFile;
+  cameraReadySubmittedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -374,6 +378,10 @@ export interface Submission {
 export interface SubmissionFile {
   id: number;
   author: number | User;
+  kind: 'original-review' | 'revision' | 'camera-ready';
+  submission?: (number | null) | Submission;
+  revisionRound?: (number | null) | RevisionRound;
+  stageKey?: string | null;
   prefix?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -386,6 +394,28 @@ export interface SubmissionFile {
   height?: number | null;
 }
 /**
+ * Each record is one preserved editorial revision request and author resubmission.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "revision-rounds".
+ */
+export interface RevisionRound {
+  id: number;
+  edition: number | Edition;
+  submission: number | Submission;
+  roundNumber: number;
+  requestedBy: number | User;
+  requestedAt: string;
+  deadline?: string | null;
+  instructions: string;
+  status: 'open' | 'submitted' | 'closed';
+  revisedManuscript?: (number | null) | SubmissionFile;
+  resubmittedAt?: string | null;
+  roundKey: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Assign two independent reviewers normally. Slot 3 becomes available only after differing completed primary reviews.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -396,6 +426,10 @@ export interface ReviewerAssignment {
   edition: number | Edition;
   submission: number | Submission;
   reviewer: number | User;
+  /**
+   * Leave empty only for review of the original manuscript.
+   */
+  revisionRound?: (number | null) | RevisionRound;
   reviewerNumber: '1' | '2' | '3';
   status: 'assigned' | 'completed';
   recommendation?: ('accept' | 'revision' | 'reject') | null;
@@ -403,6 +437,7 @@ export interface ReviewerAssignment {
   editorComments?: string | null;
   assignedAt: string;
   submittedAt?: string | null;
+  releasedToAuthorAt?: string | null;
   assignmentKey: string;
   slotKey: string;
   updatedAt: string;
@@ -692,6 +727,10 @@ export interface PayloadLockedDocument {
         value: number | Submission;
       } | null)
     | ({
+        relationTo: 'revision-rounds';
+        value: number | RevisionRound;
+      } | null)
+    | ({
         relationTo: 'reviewer-assignments';
         value: number | ReviewerAssignment;
       } | null)
@@ -830,6 +869,27 @@ export interface SubmissionsSelect<T extends boolean = true> {
   reviewNotes?: T;
   authorDecisionComments?: T;
   reviewState?: T;
+  cameraReadyFile?: T;
+  cameraReadySubmittedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "revision-rounds_select".
+ */
+export interface RevisionRoundsSelect<T extends boolean = true> {
+  edition?: T;
+  submission?: T;
+  roundNumber?: T;
+  requestedBy?: T;
+  requestedAt?: T;
+  deadline?: T;
+  instructions?: T;
+  status?: T;
+  revisedManuscript?: T;
+  resubmittedAt?: T;
+  roundKey?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -841,6 +901,7 @@ export interface ReviewerAssignmentsSelect<T extends boolean = true> {
   edition?: T;
   submission?: T;
   reviewer?: T;
+  revisionRound?: T;
   reviewerNumber?: T;
   status?: T;
   recommendation?: T;
@@ -848,6 +909,7 @@ export interface ReviewerAssignmentsSelect<T extends boolean = true> {
   editorComments?: T;
   assignedAt?: T;
   submittedAt?: T;
+  releasedToAuthorAt?: T;
   assignmentKey?: T;
   slotKey?: T;
   updatedAt?: T;
@@ -859,6 +921,10 @@ export interface ReviewerAssignmentsSelect<T extends boolean = true> {
  */
 export interface SubmissionFilesSelect<T extends boolean = true> {
   author?: T;
+  kind?: T;
+  submission?: T;
+  revisionRound?: T;
+  stageKey?: T;
   prefix?: T;
   updatedAt?: T;
   createdAt?: T;

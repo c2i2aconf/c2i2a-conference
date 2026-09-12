@@ -196,3 +196,73 @@ export async function submissionDecisionEmail({
     </EmailLayout>,
   )
 }
+
+export async function revisionRequestEmail({
+  accountUrl,
+  deadline,
+  instructions,
+  locale,
+  roundNumber,
+  title,
+  reviewReports,
+}: {
+  accountUrl: string
+  deadline?: string | null
+  instructions: string
+  locale: Locale
+  roundNumber: number
+  title: string
+  reviewReports?: Array<string | null | undefined>
+}) {
+  const fr = locale === 'fr'
+  const formattedDeadline = deadline
+    ? new Intl.DateTimeFormat(fr ? 'fr-FR' : 'en-GB', {
+        dateStyle: 'long',
+        timeStyle: 'short',
+        timeZone: 'Europe/Paris',
+      }).format(new Date(deadline))
+    : null
+  return render(
+    <EmailLayout
+      preview={fr ? 'Une révision de votre soumission est demandée' : 'A revision is requested'}
+      title={
+        fr ? `Révision demandée — tour ${roundNumber}` : `Revision requested — round ${roundNumber}`
+      }
+    >
+      <Text>
+        {fr
+          ? `Une révision de votre soumission « ${title} » est demandée.`
+          : `A revision is requested for your submission “${title}”.`}
+      </Text>
+      <Section style={{ borderLeft: '3px solid #d5a72e', paddingLeft: '16px' }}>
+        <Text>{instructions}</Text>
+      </Section>
+      {formattedDeadline ? (
+        <Text>{fr ? `Date limite : ${formattedDeadline}` : `Deadline: ${formattedDeadline}`}</Text>
+      ) : null}
+      {(reviewReports?.filter((report): report is string => Boolean(report?.trim())) ?? []).map(
+        (report, index) => (
+          <Section key={index} style={{ marginTop: '20px' }}>
+            <Text style={{ fontWeight: 700 }}>
+              {fr ? `Rapport anonymisé ${index + 1}` : `Anonymized review ${index + 1}`}
+            </Text>
+            <Text>{report}</Text>
+          </Section>
+        ),
+      )}
+      <Section style={{ textAlign: 'center', margin: '28px 0' }}>
+        <Button
+          href={accountUrl}
+          style={{
+            backgroundColor: '#2455a4',
+            borderRadius: '8px',
+            color: '#fff',
+            padding: '12px 20px',
+          }}
+        >
+          {fr ? 'Déposer la révision' : 'Upload the revision'}
+        </Button>
+      </Section>
+    </EmailLayout>,
+  )
+}

@@ -11,6 +11,8 @@ import { LogoutButton } from '@/components/layout/LogoutButton'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { WorkflowUploadForm } from '@/components/sections/WorkflowUploadForm'
+import { isRevisionRoundOpen } from '@/lib/workflow-policy'
 
 export async function generateMetadata({
   params,
@@ -60,6 +62,25 @@ export default async function AccountPage({
   ])
 
   const submissionIDs = submissions.docs.map((submission) => submission.id)
+  const revisionRounds = submissionIDs.length
+    ? await payload.find({
+        collection: 'revision-rounds',
+        depth: 0,
+        overrideAccess: false,
+        pagination: false,
+        select: {
+          deadline: true,
+          instructions: true,
+          resubmittedAt: true,
+          roundNumber: true,
+          status: true,
+          submission: true,
+        },
+        sort: 'roundNumber',
+        user,
+        where: { submission: { in: submissionIDs } },
+      })
+    : { docs: [] }
   const completedReviews = submissionIDs.length
     ? await payload.find({
         collection: 'reviewer-assignments',
@@ -75,10 +96,7 @@ export default async function AccountPage({
         sort: 'reviewerNumber',
         user,
         where: {
-          and: [
-            { submission: { in: submissionIDs } },
-            { status: { equals: 'completed' } },
-          ],
+          and: [{ submission: { in: submissionIDs } }, { status: { equals: 'completed' } }],
         },
       })
     : { docs: [] }
@@ -96,6 +114,14 @@ export default async function AccountPage({
       recommendation: review.recommendation,
     })
     safeReviewsBySubmission.set(submissionID, reports)
+  }
+  const revisionRoundsBySubmission = new Map<number, typeof revisionRounds.docs>()
+  for (const round of revisionRounds.docs) {
+    const submissionID =
+      typeof round.submission === 'number' ? round.submission : round.submission.id
+    const rounds = revisionRoundsBySubmission.get(submissionID) ?? []
+    rounds.push(round)
+    revisionRoundsBySubmission.set(submissionID, rounds)
   }
 
   const statusVariant = (status: string) =>
@@ -163,37 +189,105 @@ export default async function AccountPage({
                 <p className="text-sm text-muted-foreground">{t('noSubmissions')}</p>
               ) : (
                 <ul className="divide-y divide-border">
-                  {submissions.docs.map((sub) => (
-                    <li key={sub.id} className="space-y-4 py-4 text-sm">
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="min-w-0 truncate font-medium">{sub.title}</span>
-                        <Badge variant={statusVariant(sub.status)}>
-                          {tSub(`status.${sub.status}`)}
-                        </Badge>
-                      </div>
-                      {sub.authorDecisionComments ? (
-                        <div className="rounded-lg border border-border bg-muted/40 p-4">
-                          <p className="mb-1 font-medium">{tSub('decisionComments')}</p>
-                          <p className="text-muted-foreground">{sub.authorDecisionComments}</p>
+                  {submissions.docs.map((sub) => {
+                    const rounds = revisionRoundsBySubmission.get(sub.id) ?? []
+                    const openRound = rounds.find((round) => round.status === 'open')
+                    const revisionCanBeSubmitted = openRound && isRevisionRoundOpen(openRound)
+                    return (
+                      <li key={sub.id} className="space-y-4 py-4 text-sm">
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="min-w-0 truncate font-medium">{sub.title}</span>
+                          <Badge variant={statusVariant(sub.status)}>
+                            {tSub(`status.${sub.status}`)}
+                          </Badge>
                         </div>
-                      ) : null}
-                      {(safeReviewsBySubmission.get(sub.id) ?? []).map((review, index) => (
-                        <div key={index} className="rounded-lg border border-border p-4">
-                          <p className="font-medium">
-                            {tSub('reviewReport', { number: index + 1 })}
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {tSub('recommendation', {
-                              recommendation: tSub(
-                                `recommendations.${review.recommendation}`,
-                              ),
-                            })}
-                          </p>
-                          <p className="mt-2 text-muted-foreground">{review.authorComments}</p>
-                        </div>
-                      ))}
-                    </li>
-                  ))}
+                        {sub.authorDecisionComments ? (
+                          <div className="rounded-lg border border-border bg-muted/40 p-4">
+                            <p className="mb-1 font-medium">{tSub('decisionComments')}</p>
+                            <p className="text-muted-foreground">{sub.authorDecisionComments}</p>
+                          </div>
+                        ) : null}
+                        {(safeReviewsBySubmission.get(sub.id) ?? []).map((review, index) => (
+                          <div key={index} className="rounded-lg border border-border p-4">
+                            <p className="font-medium">
+                              {tSub('reviewReport', { number: index + 1 })}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {tSub('recommendation', {
+                                recommendation: tSub(`recommendations.${review.recommendation}`),
+                              })}
+                            </p>
+                            <p className="mt-2 text-muted-foreground">{review.authorComments}</p>
+                          </div>
+                        ))}
+                        {rounds.map((round) => (
+                          <div
+                            key={round.id}
+                            className="rounded-lg border border-amber-500/40 bg-amber-50/50 p-4 dark:bg-amber-950/10"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="font-medium">
+                                {tSub('revisionRound', { number: round.roundNumber })}
+                              </p>
+                              <Badge variant="secondary">
+                                {tSub(`revisionStatus.${round.status}`)}
+                              </Badge>
+                            </div>
+                            <p className="mt-2 text-muted-foreground">{round.instructions}</p>
+                            {round.deadline ? (
+                              <p className="mt-2 font-medium">
+                                {tSub('revisionDeadline', {
+                                  deadline: new Intl.DateTimeFormat(
+                                    locale === 'fr' ? 'fr-FR' : 'en-GB',
+                                    {
+                                      dateStyle: 'long',
+                                      timeStyle: 'short',
+                                      timeZone: 'Europe/Paris',
+                                    },
+                                  ).format(new Date(round.deadline)),
+                                })}
+                              </p>
+                            ) : null}
+                            {round.resubmittedAt ? (
+                              <p className="mt-2 text-green-700 dark:text-green-400">
+                                {tSub('revisionSubmitted')}
+                              </p>
+                            ) : null}
+                            {round.id === openRound?.id && revisionCanBeSubmitted ? (
+                              <div className="mt-4 border-t border-amber-500/30 pt-4">
+                                <WorkflowUploadForm
+                                  kind="revision"
+                                  revisionRound={round.id}
+                                  submission={sub.id}
+                                />
+                              </div>
+                            ) : round.id === openRound?.id ? (
+                              <p className="mt-3 font-medium text-destructive">
+                                {tSub('revisionClosed')}
+                              </p>
+                            ) : null}
+                          </div>
+                        ))}
+                        {sub.status === 'accepted' ? (
+                          <div className="rounded-lg border border-green-500/40 bg-green-50/50 p-4 dark:bg-green-950/10">
+                            <p className="font-medium">{tSub('finalAcceptance')}</p>
+                            {sub.cameraReadyFile ? (
+                              <p className="mt-2 text-green-700 dark:text-green-400">
+                                {tSub('cameraReadySubmitted')}
+                              </p>
+                            ) : (
+                              <div className="mt-3">
+                                <p className="mb-3 text-muted-foreground">
+                                  {tSub('cameraReadyRequired')}
+                                </p>
+                                <WorkflowUploadForm kind="camera-ready" submission={sub.id} />
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </CardContent>

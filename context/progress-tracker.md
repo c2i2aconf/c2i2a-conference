@@ -58,6 +58,7 @@
 - [x] Intentionally kept uncertain tooling/configuration candidates (`opencode.json`, `.yarnrc`, the `devsafe` script, `@payloadcms/ui`, Payload `custom.scss`) for a separate owner-confirmed cleanup.
 
 ### Isolated test database guard — 2026-09-08
+
 - [x] Added mandatory `TEST_DATABASE_URL` validation shared by Vitest, Playwright, Payload and the E2E admin seeder.
 - [x] Payload selects `TEST_DATABASE_URL` only in an explicitly activated test runtime; normal development and production continue to use `DATABASE_URL`.
 - [x] Test startup rejects missing, malformed, placeholder, production-environment, exact-match and same-endpoint pooled/direct database configurations.
@@ -292,4 +293,36 @@ The project does not need a rewrite. The next highest-value work is to make the 
 - [ ] Decision email delivery still has no durable outbox/retry mechanism (pre-existing risk).
 - [ ] Organizer confirmation may refine whether every categorical recommendation difference is “material disagreement.”
 - [ ] Revision-round resubmission, camera-ready files, payment/proof, invitation letters, and journal submission remain explicitly deferred.
+- [ ] Owner review is required before commit or push.
+
+## Author revision rounds and camera-ready resubmission — 2026-09-12
+
+### Completed
+
+- [x] Mapped the merged peer-review, submission-file, author portal, reviewer access, editorial access, private blob, workflow-boundary, email, migration, and security-test architecture before implementation.
+- [x] Added explicit versioned `revision-rounds` with submission/edition scope, sequential round number, editor/admin requester, request date, optional deadline, author instructions, status, revised manuscript, resubmission date, and a database-unique round key.
+- [x] Preserved `submissions.file` as the original anonymized manuscript and represented revised and camera-ready manuscripts as new immutable `submission-files` records.
+- [x] Added intentional file kinds (`original-review`, `revision`, `camera-ready`) with stage relationships and database-unique stage keys; retained PDF MIME/signature and 4 MB validation.
+- [x] Enforced owner-only, open-round, before-deadline revision upload and rejected repeated/cross-submission/cross-user uploads without overwriting history.
+- [x] Added explicit revision-round scope to reviewer assignments, round-aware uniqueness/review-state computation, and exact-manuscript reviewer file access without automatic assignments.
+- [x] Preserved completed reports and versions, persisted author-release timestamps, backfilled reports already released by historical decisions, and kept unreleased reports/editor notes/reviewer identity private.
+- [x] Hid submission/file author relationships from reviewers while keeping editor/admin inspection and author ownership access.
+- [x] Enforced editorial transitions in Payload hooks: revision requests are explicit editor/admin creates; author/reviewer self-decisions are rejected; resubmission reopens editorial follow-up; accepted/rejected are terminal; rejected open revision rounds close server-side.
+- [x] Added accepted-owner-only camera-ready upload and denied pending/revision/rejected, unrelated-author, reviewer, and direct bypass paths.
+- [x] Added focused FR/EN account UI for current decision, released feedback, revision request/deadline/status/upload, final acceptance, and camera-ready requirement/submission.
+- [x] Added a bilingual best-effort revision-request email using the existing infrastructure, with author-safe instructions/deadline/reports and canonical account URL.
+- [x] Generated/reviewed `20260911_141111_revision_camera_ready_workflow`; fixed generated down-order and added safe legacy uniqueness/release backfills.
+- [x] Applied only the additive migration to guarded `TEST_DATABASE_URL` / `conference-tests`; no reset, production migration, or `migrate:fresh` was used.
+- [x] Added 8 revision/camera-ready integration tests spanning Local API, REST, GraphQL, owner isolation, deadlines, history, role denial, follow-up review, author anonymity, terminal transitions, and camera-ready access.
+- [x] Full verification passes: 8 integration files / 48 tests, lint with zero warnings, TypeScript, production build with 39 static pages, and `git diff --check`.
+- [x] Required routes returned HTTP 200: `/fr`, `/en`, `/fr/archive/2024`, `/en/archive/2024`, `/fr/archive/2025`, `/en/archive/2025`.
+- [x] Public 2027 submission/registration gates and all current/historical conference content remain unchanged.
+- [x] No commit or push performed.
+
+### Remaining risks / deferred
+
+- [ ] Revision-request and decision emails remain best-effort without a durable retry/outbox.
+- [ ] Camera-ready currently shares the review-manuscript PDF/4 MB validation policy; the explicit stage can receive distinct organizer-approved requirements later.
+- [ ] Revision requests are immutable after creation; add explicit amendment records only if organizers require corrections after author notification.
+- [ ] Payment/proof, invitation letters, journal submission, and automatic reviewer assignment remain out of scope.
 - [ ] Owner review is required before commit or push.
