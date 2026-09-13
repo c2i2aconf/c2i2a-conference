@@ -68,6 +68,8 @@ export interface Config {
   blocks: {};
   collections: {
     registrations: Registration;
+    'payment-proofs': PaymentProof;
+    'invitation-letters': InvitationLetter;
     submissions: Submission;
     'revision-rounds': RevisionRound;
     'reviewer-assignments': ReviewerAssignment;
@@ -94,6 +96,8 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     registrations: RegistrationsSelect<false> | RegistrationsSelect<true>;
+    'payment-proofs': PaymentProofsSelect<false> | PaymentProofsSelect<true>;
+    'invitation-letters': InvitationLettersSelect<false> | InvitationLettersSelect<true>;
     submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
     'revision-rounds': RevisionRoundsSelect<false> | RevisionRoundsSelect<true>;
     'reviewer-assignments': ReviewerAssignmentsSelect<false> | ReviewerAssignmentsSelect<true>;
@@ -161,6 +165,23 @@ export interface UserAuthOperations {
  */
 export interface Registration {
   id: number;
+  activePersonKey?: string | null;
+  activeEmailKey?: string | null;
+  feeDetails?: (number | null) | ConferenceDetail;
+  /**
+   * Exact fee code from this edition’s conference details. Immutable after registration.
+   */
+  feeCategory?: string | null;
+  feeLabel?: string | null;
+  feeAmount?: number | null;
+  feeCurrency?: ('MAD' | 'EUR') | null;
+  feeExempt?: boolean | null;
+  /**
+   * Organizer approval of the selected exempt category; no payment is created.
+   */
+  exemptionApproved?: boolean | null;
+  exemptionApprovedBy?: (number | null) | User;
+  exemptionApprovedAt?: string | null;
   edition: number | Edition;
   /**
    * Linked automatically after magic-link sign-in
@@ -177,6 +198,57 @@ export interface Registration {
    * Marked at the venue on conference day
    */
   checkedIn?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "conference-details".
+ */
+export interface ConferenceDetail {
+  id: number;
+  edition: number | Edition;
+  contributionTypes?:
+    | {
+        code: string;
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  submissionLanguages?: ('fr' | 'en' | 'ar')[] | null;
+  englishAbstractRequired?: boolean | null;
+  extendedAbstractMinWords?: number | null;
+  extendedAbstractMaxWords?: number | null;
+  fullPaperMinPages?: number | null;
+  fullPaperMaxPages?: number | null;
+  acceptedFormats?: ('docx' | 'pdf')[] | null;
+  anonymizedManuscriptRequired?: boolean | null;
+  separateAuthorCoverSheetRequired?: boolean | null;
+  reviewersPerSubmission?: number | null;
+  thirdReviewerOnDisagreement?: boolean | null;
+  decisionOutcomes?: ('acceptance' | 'conditional-revision' | 'rejection')[] | null;
+  anonymizedReportsReturned?: boolean | null;
+  isbnProceedings?: boolean | null;
+  registrationRequired?: boolean | null;
+  paymentRequired?: boolean | null;
+  paymentProofRequired?: boolean | null;
+  /**
+   * Organizer-configured upload policy, not a source requirement. Empty disables proof uploads. Technical ceiling: 4 MB.
+   */
+  paymentProofFormats?: ('pdf' | 'jpeg' | 'png')[] | null;
+  invitationLettersAvailable?: boolean | null;
+  registrationFees?:
+    | {
+        code: string;
+        label: string;
+        amount?: number | null;
+        currency?: ('MAD' | 'EUR') | null;
+        alternateAmount?: number | null;
+        alternateCurrency?: ('MAD' | 'EUR') | null;
+        exempt?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -348,6 +420,59 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-proofs".
+ */
+export interface PaymentProof {
+  id: number;
+  registration: number | Registration;
+  edition: number | Edition;
+  user: number | User;
+  sequence: number;
+  proofKey?: string | null;
+  status: 'submitted' | 'verified' | 'rejected';
+  /**
+   * Visible to the participant. Required for rejection.
+   */
+  reviewComment?: string | null;
+  reviewedBy?: (number | null) | User;
+  reviewedAt?: string | null;
+  prefix?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invitation-letters".
+ */
+export interface InvitationLetter {
+  id: number;
+  registration: number | Registration;
+  edition: number | Edition;
+  user: number | User;
+  status: 'draft' | 'issued';
+  /**
+   * Organizer-approved letter text. No automatic signatures or declarations are added.
+   */
+  body: string;
+  recipientName?: string | null;
+  recipientEmail?: string | null;
+  organizerNote?: string | null;
+  issuedBy?: (number | null) | User;
+  issuedAt?: string | null;
+  eligibilityBasis?: ('verified' | 'exempt') | null;
+  verifiedProof?: (number | null) | PaymentProof;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -542,53 +667,6 @@ export interface ThematicAx {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "conference-details".
- */
-export interface ConferenceDetail {
-  id: number;
-  edition: number | Edition;
-  contributionTypes?:
-    | {
-        code: string;
-        label: string;
-        id?: string | null;
-      }[]
-    | null;
-  submissionLanguages?: ('fr' | 'en' | 'ar')[] | null;
-  englishAbstractRequired?: boolean | null;
-  extendedAbstractMinWords?: number | null;
-  extendedAbstractMaxWords?: number | null;
-  fullPaperMinPages?: number | null;
-  fullPaperMaxPages?: number | null;
-  acceptedFormats?: ('docx' | 'pdf')[] | null;
-  anonymizedManuscriptRequired?: boolean | null;
-  separateAuthorCoverSheetRequired?: boolean | null;
-  reviewersPerSubmission?: number | null;
-  thirdReviewerOnDisagreement?: boolean | null;
-  decisionOutcomes?: ('acceptance' | 'conditional-revision' | 'rejection')[] | null;
-  anonymizedReportsReturned?: boolean | null;
-  isbnProceedings?: boolean | null;
-  registrationRequired?: boolean | null;
-  paymentRequired?: boolean | null;
-  paymentProofRequired?: boolean | null;
-  invitationLettersAvailable?: boolean | null;
-  registrationFees?:
-    | {
-        code: string;
-        label: string;
-        amount?: number | null;
-        currency?: ('MAD' | 'EUR') | null;
-        alternateAmount?: number | null;
-        alternateCurrency?: ('MAD' | 'EUR') | null;
-        exempt?: boolean | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
@@ -723,6 +801,14 @@ export interface PayloadLockedDocument {
         value: number | Registration;
       } | null)
     | ({
+        relationTo: 'payment-proofs';
+        value: number | PaymentProof;
+      } | null)
+    | ({
+        relationTo: 'invitation-letters';
+        value: number | InvitationLetter;
+      } | null)
+    | ({
         relationTo: 'submissions';
         value: number | Submission;
       } | null)
@@ -841,6 +927,17 @@ export interface PayloadMigration {
  * via the `definition` "registrations_select".
  */
 export interface RegistrationsSelect<T extends boolean = true> {
+  activePersonKey?: T;
+  activeEmailKey?: T;
+  feeDetails?: T;
+  feeCategory?: T;
+  feeLabel?: T;
+  feeAmount?: T;
+  feeCurrency?: T;
+  feeExempt?: T;
+  exemptionApproved?: T;
+  exemptionApprovedBy?: T;
+  exemptionApprovedAt?: T;
   edition?: T;
   user?: T;
   firstName?: T;
@@ -851,6 +948,51 @@ export interface RegistrationsSelect<T extends boolean = true> {
   country?: T;
   status?: T;
   checkedIn?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-proofs_select".
+ */
+export interface PaymentProofsSelect<T extends boolean = true> {
+  registration?: T;
+  edition?: T;
+  user?: T;
+  sequence?: T;
+  proofKey?: T;
+  status?: T;
+  reviewComment?: T;
+  reviewedBy?: T;
+  reviewedAt?: T;
+  prefix?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invitation-letters_select".
+ */
+export interface InvitationLettersSelect<T extends boolean = true> {
+  registration?: T;
+  edition?: T;
+  user?: T;
+  status?: T;
+  body?: T;
+  recipientName?: T;
+  recipientEmail?: T;
+  organizerNote?: T;
+  issuedBy?: T;
+  issuedAt?: T;
+  eligibilityBasis?: T;
+  verifiedProof?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1078,6 +1220,7 @@ export interface ConferenceDetailsSelect<T extends boolean = true> {
   registrationRequired?: T;
   paymentRequired?: T;
   paymentProofRequired?: T;
+  paymentProofFormats?: T;
   invitationLettersAvailable?: T;
   registrationFees?:
     | T

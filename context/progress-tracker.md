@@ -326,3 +326,43 @@ The project does not need a rewrite. The next highest-value work is to make the 
 - [ ] Revision requests are immutable after creation; add explicit amendment records only if organizers require corrections after author notification.
 - [ ] Payment/proof, invitation letters, journal submission, and automatic reviewer assignment remain out of scope.
 - [ ] Owner review is required before commit or push.
+
+## Registration payment proof and invitation workflow — 2026-09-13
+
+### Implemented
+
+- [x] Read AGENTS.md and every context file; inspected existing registration/users, merged review/revision/camera-ready workflows, gates, uploads, private storage, account portal, fee configuration, access helpers and email infrastructure.
+- [x] Preserved participant-level registration and legacy free/email-first behavior; configured fee editions require authenticated ownership and an edition-specific verified CMS category.
+- [x] Added immutable fee label/code/source/amount/currency/exemption snapshots, explicit exemption approval audit, version history and database-unique active person/email edition keys.
+- [x] Added separate private payment-proofs with owner-only uploads, configurable PDF/JPEG/PNG allowlist, actual-byte/signature checks and existing 4 MB technical ceiling.
+- [x] Preserved submitted/rejected/verified proof history. Only rejection permits a new sequential file; organizer review is final, attributed and timestamped, with participant-safe rejection comments.
+- [x] Added transaction locks and stale-state checks for concurrent proof review/replacement, registration updates and invitation issuance.
+- [x] Added organizer-authored draft/issued invitation text records tied to registration/user/edition, recipient snapshot, issuer/time, eligibility evidence, private notes and version history. Issued state is immutable.
+- [x] Required independent admin/editor issuance plus confirmed registration and verified payment or approved exemption. No acceptance-only/self-service rule was inferred.
+- [x] Added FR/EN portal fee selection, proof status/history/upload, review comments and issued invitation text without redesigning public pages.
+- [x] Generated and reviewed 20260912_115433_registration_payment_invitations. Fixed generated rollback ordering and added non-destructive legacy identity-key backfill.
+- [x] Applied only the additive migration to guarded TEST_DATABASE_URL / conference-tests, with schema push disabled and no reset.
+- [x] Initial new suite passed 16 tests; expanded suite passed 18 tests. First full run passed 65/66; the remaining legacy mock lacked Payload's docs array and was corrected.
+- [x] Final full-suite verification passed: 9 files / 66 tests. Lint/types/build and all six public/archive routes also passed.
+- [x] Public 2027 registration and submission gates and all 2024/2025/2027 factual source data remain unchanged.
+- [x] No commit or push.
+
+### Deferred / remaining risks
+
+- [ ] Organizers must configure accepted payment-proof formats before opening uploads; no format policy was invented for 2027.
+- [ ] PDF rendering/official templates, letter revocation/amendment and post-verification corrections remain separate future workflows.
+- [ ] No new workflow emails; existing registration confirmation remains best-effort. Durable retry/outbox remains deferred.
+- [ ] No card payments, bank integration/reconciliation, invoices/tax receipts, journal workflows, review redesign or public redesign.
+- [ ] Existing active duplicate identities would block migration for explicit reconciliation rather than deleting historical data.
+- [ ] Owner review is required before commit or push.
+
+### Final verification notes — payment/invitation ticket
+
+- [x] All 18 new workflow integration tests passed, including the final REST/GraphQL/Local API checks and concurrent-review tests.
+- [x] Payload types, lint, TypeScript and production build passed (39 generated static pages).
+- [x] All six requested FR/EN home/archive routes returned HTTP 200 with content/heading checks; anonymous account access redirected to sign-in.
+- [x] Verified 2027 registration/submission gates remain disabled; no source import data or merged review/revision collection files changed.
+- [x] Corrected the legacy hook mock to return Payload's docs array. Calibrated slow double-import timeouts to 180 seconds for 2025 and 360 seconds for 2027 after successful isolated retries; assertions remain unchanged.
+- [x] Final full run passed on 2026-09-13: 9 files / 66 tests, exit 0, duration 1152.99 seconds. Earlier import timeouts are resolved.
+- [x] Removed temporary import timing instrumentation and task verification scripts after recording the results.
+- [x] No production migration/reset and no commit/push.

@@ -7,6 +7,7 @@ import { PageHero } from '@/components/sections/PageHero'
 import { Card, CardContent } from '@/components/ui/card'
 import { getConferenceDetails, getLiveEdition } from '@/lib/queries'
 import { SectionHeading } from '@/components/sections/SectionHeading'
+import { Link } from '@/i18n/navigation'
 
 // CMS edits revalidate on demand (collection hooks); hourly ISR is the fallback
 export const revalidate = 3600
@@ -93,7 +94,17 @@ export default async function RegistrationPage({
             </div>
           </div>
         ) : null}
-        {edition?.registrationEnabled ? <RegistrationForm /> : null}
+        {edition?.registrationEnabled ? (
+          details?.registrationFees?.length ? (
+            <p className="text-center">
+              <Link href="/account" className="underline">
+                {t('accountRegistration')}
+              </Link>
+            </p>
+          ) : (
+            <RegistrationForm />
+          )
+        ) : null}
       </section>
     </>
   )

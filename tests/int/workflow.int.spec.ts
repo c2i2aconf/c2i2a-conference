@@ -176,7 +176,7 @@ describe('Payload access and ownership hooks', () => {
       operation: 'create',
       req: {
         payload: {
-          find: async () => ({ totalDocs: 0 }),
+          find: async () => ({ totalDocs: 0, docs: [] }),
           findByID: async () => ({
             id: 3,
             _status: 'published',

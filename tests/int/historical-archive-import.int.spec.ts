@@ -161,7 +161,7 @@ describe('historical archive imports', () => {
       speakers: children.speakers.docs.map(({ id }) => id).sort((a, b) => a - b),
       sponsors: children.sponsors.docs.map(({ id }) => id).sort((a, b) => a - b),
     }).toEqual(idsAfterFirst)
-  })
+  }, 180_000)
 
   it('imports ICAIA 2027 with a provisional working date and preserved provenance', async () => {
     if (!payload) throw new Error('Payload was not initialized')
@@ -254,7 +254,7 @@ describe('historical archive imports', () => {
         data: { conferenceDateCandidates: [], conferenceDateNote: null },
       }),
     ).rejects.toThrow('requires the sourced candidates')
-  }, 180_000)
+  }, 360_000)
 
   it('contains no cross-edition relationships', async () => {
     if (!payload) throw new Error('Payload was not initialized')

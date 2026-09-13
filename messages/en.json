@@ -136,6 +136,24 @@
     "imageAlt": "Conference photo"
   },
   "registration": {
+    "feeCategory": "Fee category",
+    "feeCurrency": "Currency offered for this category",
+    "categoryCurrency": "Category's primary currency",
+    "accountRegistration": "Sign in to your account to register",
+    "proofUpload": "Payment proof ({formats}; maximum 4 MB)",
+    "submitProof": "Submit payment proof",
+    "proofError": "Proof could not be submitted. Check the file and registration status, then try again.",
+    "proofNumber": "Payment proof #{number}",
+    "proofPolicyPending": "Organizers have not yet configured accepted payment-proof formats.",
+    "invitationIssued": "Issued invitation letter",
+    "paymentStates": {
+      "not-submitted": "Payment proof not submitted",
+      "submitted": "Proof received — awaiting organizer verification",
+      "verified": "Payment verified",
+      "rejected": "Proof rejected — replacement required",
+      "exemption-pending": "Exemption awaiting organizer approval",
+      "exempt": "Exemption approved"
+    },
     "title": "Registration",
     "subtitle": "Conference participation and registration details",
     "notOpen": "Online registration is not open yet.",

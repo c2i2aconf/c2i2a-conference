@@ -136,6 +136,24 @@
     "imageAlt": "Photo du colloque"
   },
   "registration": {
+    "feeCategory": "Catégorie tarifaire",
+    "feeCurrency": "Devise proposée pour cette catégorie",
+    "categoryCurrency": "Devise principale de la catégorie",
+    "accountRegistration": "Connectez-vous à votre compte pour vous inscrire",
+    "proofUpload": "Justificatif de paiement ({formats} ; maximum 4 Mo)",
+    "submitProof": "Envoyer le justificatif",
+    "proofError": "Envoi impossible. Vérifiez le fichier et le statut de l’inscription, puis réessayez.",
+    "proofNumber": "Justificatif de paiement n° {number}",
+    "proofPolicyPending": "Les organisateurs n’ont pas encore configuré les formats de justificatif acceptés.",
+    "invitationIssued": "Lettre d’invitation émise",
+    "paymentStates": {
+      "not-submitted": "Justificatif non soumis",
+      "submitted": "Justificatif reçu — en attente de vérification",
+      "verified": "Paiement vérifié",
+      "rejected": "Justificatif rejeté — remplacement nécessaire",
+      "exemption-pending": "Exonération en attente de validation",
+      "exempt": "Exonération validée"
+    },
     "title": "Inscription",
     "subtitle": "Modalités et inscription au colloque",
     "notOpen": "Les inscriptions en ligne ne sont pas encore ouvertes.",

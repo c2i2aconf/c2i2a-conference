@@ -216,6 +216,14 @@ export const isAdminOrSelf: Access = ({ req: { user } }) => {
   return { user: { equals: user.id } }
 }
 
+/** Financial and invitation data never inherits reviewer assignment access. Draft letters are editorial. */
+export const canReadParticipantWorkflow: Access = ({ req: { user } }) => {
+  if (!user) return false
+  if (user.role === 'admin' || user.role === 'editor') return true
+  if (user.role !== 'author' && user.role !== 'attendee') return false
+  return { user: { equals: user.id } }
+}
+
 /** Field-level: only admins can write */
 export const isAdminField: FieldAccess = ({ req: { user } }) => user?.role === 'admin'
 

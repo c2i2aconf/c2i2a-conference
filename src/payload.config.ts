@@ -18,6 +18,8 @@ import { MagicLinks } from './collections/MagicLinks'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Registrations } from './collections/Registrations'
+import { PaymentProofs } from './collections/PaymentProofs'
+import { InvitationLetters } from './collections/InvitationLetters'
 import { ReviewerAssignments } from './collections/ReviewerAssignments'
 import { RevisionRounds } from './collections/RevisionRounds'
 import { Rooms } from './collections/Rooms'
@@ -55,6 +57,8 @@ export default buildConfig({
   collections: [
     // Workflow (attendee-facing data)
     Registrations,
+    PaymentProofs,
+    InvitationLetters,
     Submissions,
     RevisionRounds,
     ReviewerAssignments,
