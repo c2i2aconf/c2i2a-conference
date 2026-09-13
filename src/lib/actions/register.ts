@@ -38,7 +38,11 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
     const existing = await payload.find({
       collection: 'registrations',
       where: {
-        and: [{ email: { equals: email } }, { edition: { equals: edition.id } }],
+        and: [
+          { email: { equals: email } },
+          { edition: { equals: edition.id } },
+          { status: { equals: 'confirmed' } },
+        ],
       },
       limit: 1,
       overrideAccess: true,
@@ -63,6 +67,9 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
         country,
         edition: edition.id,
         status: 'confirmed',
+        feeCategory: String(formData.get('feeCategory') || '') || undefined,
+        feeCurrency: (String(formData.get('feeCurrency') || '') || undefined) as
+          'MAD' | 'EUR' | undefined,
       },
       overrideAccess: false,
       user,

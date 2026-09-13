@@ -13,6 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { WorkflowUploadForm } from '@/components/sections/WorkflowUploadForm'
 import { isRevisionRoundOpen } from '@/lib/workflow-policy'
+import { isPortalRole } from '@/lib/workflow-policy'
+import { getConferenceDetails, getLiveEdition } from '@/lib/queries'
+import { relationshipID } from '@/lib/workflow-boundary'
+import { PaymentProofForm } from '@/components/sections/PaymentProofForm'
+import { RegistrationForm } from '@/components/sections/RegistrationForm'
 
 export async function generateMetadata({
   params,
@@ -34,11 +39,16 @@ export default async function AccountPage({
 
   const t = await getTranslations({ locale, namespace: 'auth' })
   const tSub = await getTranslations({ locale, namespace: 'submission' })
+  const tReg = await getTranslations({ locale, namespace: 'registration' })
 
   const payload = await getPayload({ config: configPromise })
   const { user } = await payload.auth({ headers: await headers() })
   if (!user) {
     redirect({ href: '/auth/login', locale })
+    return null
+  }
+  if (!isPortalRole(user.role)) {
+    redirect({ href: '/', locale })
     return null
   }
 
@@ -60,6 +70,35 @@ export default async function AccountPage({
       overrideAccess: false,
     }),
   ])
+
+  const [proofs, invitations, liveEdition] = await Promise.all([
+    payload.find({
+      collection: 'payment-proofs',
+      where: { user: { equals: user.id } },
+      sort: '-sequence',
+      pagination: false,
+      depth: 0,
+      overrideAccess: false,
+      user,
+    }),
+    payload.find({
+      collection: 'invitation-letters',
+      where: { user: { equals: user.id } },
+      pagination: false,
+      depth: 0,
+      overrideAccess: false,
+      user,
+    }),
+    getLiveEdition(locale),
+  ])
+  const liveDetails = liveEdition ? await getConferenceDetails(liveEdition.id, locale) : null
+  const detailsByEdition = new Map(
+    await Promise.all(
+      [...new Set(registrations.docs.map((reg) => relationshipID(reg.edition)!))].map(
+        async (id) => [id, await getConferenceDetails(id, locale)] as const,
+      ),
+    ),
+  )
 
   const submissionIDs = submissions.docs.map((submission) => submission.id)
   const revisionRounds = submissionIDs.length
@@ -160,19 +199,96 @@ export default async function AccountPage({
               ) : (
                 <ul className="divide-y divide-border">
                   {registrations.docs.map((reg) => (
-                    <li key={reg.id} className="flex items-center justify-between py-3 text-sm">
+                    <li key={reg.id} className="space-y-3 py-3 text-sm">
                       <span className="font-medium">
                         {reg.firstName} {reg.lastName}
                       </span>
                       <Badge variant={reg.status === 'confirmed' ? 'default' : 'secondary'}>
                         {reg.status}
                       </Badge>
+                      <p>{typeof reg.edition === 'object' ? reg.edition.title : reg.edition}</p>
+                      {reg.feeCategory && (
+                        <>
+                          <p>
+                            {reg.feeLabel}:{' '}
+                            {reg.feeExempt ? tReg('exempt') : `${reg.feeAmount} ${reg.feeCurrency}`}
+                          </p>
+                          <p>
+                            {tReg(
+                              `paymentStates.${reg.feeExempt ? (reg.exemptionApprovedAt ? 'exempt' : 'exemption-pending') : (proofs.docs.find((proof) => proof.registration === reg.id)?.status ?? 'not-submitted')}`,
+                            )}
+                          </p>
+                          {proofs.docs
+                            .filter((proof) => proof.registration === reg.id)
+                            .map((proof) => (
+                              <div key={proof.id} className="rounded border p-3">
+                                <a href={proof.url ?? undefined} className="underline">
+                                  {tReg('proofNumber', { number: proof.sequence })}
+                                </a>
+                                <span className="ml-2">
+                                  {tReg(`paymentStates.${proof.status}`)}
+                                </span>
+                                {proof.reviewComment && <p>{proof.reviewComment}</p>}
+                              </div>
+                            ))}
+                          {reg.status === 'confirmed' &&
+                            !reg.feeExempt &&
+                            isPortalRole(user.role) &&
+                            ['not-submitted', 'rejected'].includes(
+                              proofs.docs.find((proof) => proof.registration === reg.id)?.status ??
+                                'not-submitted',
+                            ) &&
+                            (detailsByEdition.get(relationshipID(reg.edition)!)?.paymentProofFormats
+                              ?.length ? (
+                              <PaymentProofForm
+                                registration={reg.id}
+                                edition={relationshipID(reg.edition)!}
+                                formats={
+                                  detailsByEdition.get(relationshipID(reg.edition)!)!
+                                    .paymentProofFormats!
+                                }
+                              />
+                            ) : (
+                              <p>{tReg('proofPolicyPending')}</p>
+                            ))}
+                          {invitations.docs
+                            .filter(
+                              (letter) =>
+                                letter.registration === reg.id && letter.status === 'issued',
+                            )
+                            .map((letter) => (
+                              <article key={letter.id} className="rounded border p-4">
+                                <h3 className="font-semibold">{tReg('invitationIssued')}</h3>
+                                <p>
+                                  {letter.recipientName} · {letter.recipientEmail}
+                                </p>
+                                <p className="whitespace-pre-wrap">{letter.body}</p>
+                                <time dateTime={letter.issuedAt ?? undefined}>
+                                  {letter.issuedAt
+                                    ? new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(
+                                        new Date(letter.issuedAt),
+                                      )
+                                    : ''}
+                                </time>
+                              </article>
+                            ))}
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>
               )}
             </CardContent>
           </Card>
+
+          {isPortalRole(user.role) &&
+          liveEdition?.registrationEnabled &&
+          liveDetails?.registrationFees?.length &&
+          !registrations.docs.some(
+            (reg) => relationshipID(reg.edition) === liveEdition.id && reg.status === 'confirmed',
+          ) ? (
+            <RegistrationForm fees={liveDetails.registrationFees} profile={user} />
+          ) : null}
 
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">

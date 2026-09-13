@@ -3,6 +3,7 @@ import * as migration_20260910_004105_icaia_2027_content from './20260910_004105
 import * as migration_20260910_145907_icaia_2027_provisional_date from './20260910_145907_icaia_2027_provisional_date'
 import * as migration_20260910_171823_peer_review_workflow from './20260910_171823_peer_review_workflow'
 import * as migration_20260911_141111_revision_camera_ready_workflow from './20260911_141111_revision_camera_ready_workflow'
+import * as migration_20260912_115433_registration_payment_invitations from './20260912_115433_registration_payment_invitations'
 
 export const migrations = [
   {
@@ -29,5 +30,10 @@ export const migrations = [
     up: migration_20260911_141111_revision_camera_ready_workflow.up,
     down: migration_20260911_141111_revision_camera_ready_workflow.down,
     name: '20260911_141111_revision_camera_ready_workflow',
+  },
+  {
+    up: migration_20260912_115433_registration_payment_invitations.up,
+    down: migration_20260912_115433_registration_payment_invitations.down,
+    name: '20260912_115433_registration_payment_invitations',
   },
 ]

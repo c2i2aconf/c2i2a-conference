@@ -88,6 +88,16 @@ export const ConferenceDetails: CollectionConfig = {
     { name: 'registrationRequired', type: 'checkbox', defaultValue: false },
     { name: 'paymentRequired', type: 'checkbox', defaultValue: false },
     { name: 'paymentProofRequired', type: 'checkbox', defaultValue: false },
+    {
+      name: 'paymentProofFormats',
+      type: 'select',
+      hasMany: true,
+      options: ['pdf', 'jpeg', 'png'],
+      admin: {
+        description:
+          'Organizer-configured upload policy, not a source requirement. Empty disables proof uploads. Technical ceiling: 4 MB.',
+      },
+    },
     { name: 'invitationLettersAvailable', type: 'checkbox', defaultValue: false },
     {
       name: 'registrationFees',

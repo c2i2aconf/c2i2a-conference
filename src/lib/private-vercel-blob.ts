@@ -94,6 +94,7 @@ export function privateVercelBlobStorage(token: string | undefined): Plugin {
         disableLocalStorage: Boolean(token),
         prefix: 'submissions',
       },
+      'payment-proofs': { adapter, disableLocalStorage: Boolean(token), prefix: 'payment-proofs' },
     },
   })
 }

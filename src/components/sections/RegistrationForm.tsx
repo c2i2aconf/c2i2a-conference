@@ -3,17 +3,33 @@
 import * as React from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { registerAction } from '@/lib/actions/register'
+import { useRouter } from '@/i18n/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
-export function RegistrationForm() {
+export function RegistrationForm({
+  fees = [],
+  profile,
+}: {
+  fees?: Array<{
+    code: string
+    label: string
+    exempt?: boolean | null
+    currency?: string | null
+    alternateCurrency?: string | null
+  }>
+  profile?: { firstName?: string | null; lastName?: string | null; email: string }
+}) {
   const t = useTranslations('registration')
+  const router = useRouter()
   const locale = useLocale() as 'fr' | 'en'
   const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = React.useState('')
   const [emailSent, setEmailSent] = React.useState(true)
+  const [feeCode, setFeeCode] = React.useState(fees[0]?.code ?? '')
+  const selectedFee = fees.find((fee) => fee.code === feeCode)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -26,6 +42,7 @@ export function RegistrationForm() {
     if (result.success) {
       setStatus('success')
       setEmailSent(result.emailSent !== false)
+      if (profile) router.refresh()
     } else {
       setStatus('error')
       if (result.error === 'duplicate_email') {
@@ -74,17 +91,37 @@ export function RegistrationForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">{t('firstName')} *</Label>
-              <Input id="firstName" name="firstName" required disabled={status === 'loading'} />
+              <Input
+                id="firstName"
+                name="firstName"
+                defaultValue={profile?.firstName ?? ''}
+                required
+                disabled={status === 'loading'}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">{t('lastName')} *</Label>
-              <Input id="lastName" name="lastName" required disabled={status === 'loading'} />
+              <Input
+                id="lastName"
+                name="lastName"
+                defaultValue={profile?.lastName ?? ''}
+                required
+                disabled={status === 'loading'}
+              />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="email">{t('email')} *</Label>
-            <Input id="email" name="email" type="email" required disabled={status === 'loading'} />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              defaultValue={profile?.email}
+              readOnly={Boolean(profile)}
+              required
+              disabled={status === 'loading'}
+            />
           </div>
 
           <div className="space-y-2">
@@ -97,6 +134,44 @@ export function RegistrationForm() {
             <Input id="country" name="country" disabled={status === 'loading'} />
           </div>
 
+          {fees.length > 0 && (
+            <>
+              <Label htmlFor="feeCategory">{t('feeCategory')}</Label>
+              <select
+                id="feeCategory"
+                name="feeCategory"
+                value={feeCode}
+                onChange={(event) => setFeeCode(event.target.value)}
+                required
+                className="w-full rounded border bg-background p-2"
+              >
+                {fees.map((fee) => (
+                  <option key={fee.code} value={fee.code}>
+                    {fee.label}
+                  </option>
+                ))}
+              </select>
+              <Label htmlFor="feeCurrency">{t('feeCurrency')}</Label>
+              <select
+                id="feeCurrency"
+                name="feeCurrency"
+                key={feeCode}
+                disabled={Boolean(selectedFee?.exempt)}
+                className="w-full rounded border bg-background p-2"
+              >
+                <option value="">{t('categoryCurrency')}</option>
+                {[
+                  ...new Set(
+                    [selectedFee?.currency, selectedFee?.alternateCurrency].filter(Boolean),
+                  ),
+                ].map((currency) => (
+                  <option key={currency} value={currency!}>
+                    {currency}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
           {status === 'error' && (
             <div className="text-destructive text-sm font-medium">{errorMsg}</div>
           )}
