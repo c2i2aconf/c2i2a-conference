@@ -3,6 +3,7 @@ import { config as loadEnvironmentFile } from 'dotenv'
 const TEST_ENVIRONMENT_FLAG = 'PAYLOAD_TEST_ENV'
 const ERROR_PREFIX = 'Unsafe test database configuration:'
 const TEST_PAYLOAD_SECRET = 'test-only-payload-secret-for-isolated-database-runs'
+const TEST_EMAIL_OUTBOX_KEY = Buffer.alloc(32, 7).toString('base64')
 
 type Environment = Record<string, string | undefined>
 
@@ -101,6 +102,9 @@ export function loadAndActivateTestEnvironment(): string {
   const testDatabaseUrl = assertSafeTestDatabase()
   // Test authentication must never depend on or expose a production signing secret.
   process.env.PAYLOAD_SECRET = TEST_PAYLOAD_SECRET
+  process.env.EMAIL_OUTBOX_ENCRYPTION_KEY = TEST_EMAIL_OUTBOX_KEY
+  // Integration/E2E runs must never inherit a developer's real provider credential.
+  process.env.RESEND_API_KEY = ''
   return testDatabaseUrl
 }
 

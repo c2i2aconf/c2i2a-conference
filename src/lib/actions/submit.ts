@@ -5,6 +5,8 @@ import { getPayload } from 'payload'
 
 import configPromise from '@payload-config'
 import { submissionReceivedEmail } from '@/emails/templates'
+import { enqueueEmail, processEmailOutbox } from '@/lib/email-outbox'
+import { withPayloadTransaction } from '@/lib/payload-transaction'
 import { getLiveEdition } from '../queries'
 import {
   hasPdfSignature,
@@ -78,21 +80,31 @@ export async function submitPaper(formData: FormData, locale: 'fr' | 'en'): Prom
     })
 
     try {
-      await payload.create({
-        collection: 'submissions',
-        data: {
-          edition: edition.id,
-          author: user.id,
-          title,
-          abstract,
-          file: uploaded.id,
-          locale,
-          reviewState: 'unassigned',
-          status: 'pending',
-        },
-        user,
-        overrideAccess: false,
+      const eventKey = await withPayloadTransaction(payload, { user }, async (req) => {
+        const submission = await payload.create({
+          collection: 'submissions',
+          data: {
+            edition: edition.id, author: user.id, title, abstract, file: uploaded.id,
+            locale, reviewState: 'unassigned', status: 'pending',
+          },
+          user, overrideAccess: false, req,
+        })
+        const key = `submission-receipt:${submission.id}`
+        await enqueueEmail({
+          req, eventKey: key, eventType: 'submission-receipt',
+          message: {
+            to: user.email,
+            subject: locale === 'fr' ? 'Soumission reçue — C2I2A' : 'Submission received — C2I2A',
+            html: await submissionReceivedEmail(locale, title),
+          },
+        })
+        return key
       })
+      if (process.env.RESEND_API_KEY) {
+        try { await processEmailOutbox(payload, { eventKey }) } catch (error) {
+          console.warn('Submission email delivery deferred to retry worker', error)
+        }
+      }
     } catch (error) {
       await payload.delete({
         collection: 'submission-files',
@@ -100,17 +112,6 @@ export async function submitPaper(formData: FormData, locale: 'fr' | 'en'): Prom
         overrideAccess: true,
       })
       throw error
-    }
-
-    // Notify the author (best effort — email adapter may not be configured in dev)
-    try {
-      await payload.sendEmail({
-        to: user.email,
-        subject: locale === 'fr' ? 'Soumission reçue — C2I2A' : 'Submission received — C2I2A',
-        html: await submissionReceivedEmail(locale, title),
-      })
-    } catch (emailError) {
-      console.warn('Submission confirmation email not sent', emailError)
     }
 
     return { success: true }

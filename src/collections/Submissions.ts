@@ -1,5 +1,6 @@
 import { APIError, type CollectionConfig, type FieldAccess } from 'payload'
 import { submissionDecisionEmail } from '@/emails/templates'
+import { enqueueEmail } from '@/lib/email-outbox'
 import { shouldSendDecisionEmail } from '@/lib/workflow-policy'
 import { relationshipID, requireOpenSubmissionEdition } from '@/lib/workflow-boundary'
 
@@ -15,6 +16,7 @@ import {
 import {
   closeOpenRevisionRounds,
   isInternalRevisionTransition,
+  lockSubmission,
   releaseCompletedReviews,
 } from '@/lib/revision-workflow'
 
@@ -170,6 +172,14 @@ export const Submissions: CollectionConfig = {
           const previousStatus = originalDoc?.status
           const nextStatus = data.status ?? previousStatus
           if (nextStatus !== previousStatus) {
+            await lockSubmission(req, originalDoc.id)
+            const current = await req.payload.findByID({
+              collection: 'submissions', id: originalDoc.id, depth: 0,
+              overrideAccess: true, req,
+            })
+            if (current.updatedAt !== originalDoc.updatedAt) {
+              throw new APIError('Submission changed concurrently. Reload before retrying.', 409, undefined, true)
+            }
             const internal = isInternalRevisionTransition(req)
             const internalTransition =
               internal &&
@@ -253,41 +263,29 @@ export const Submissions: CollectionConfig = {
           return doc
         }
 
-        try {
-          const authorId = typeof doc.author === 'object' ? doc.author.id : doc.author
-          const author = await req.payload.findByID({
-            collection: 'users',
-            id: authorId,
-            overrideAccess: true,
-          })
-          const reviews = await req.payload.find({
-            collection: 'reviewer-assignments',
-            depth: 0,
-            overrideAccess: true,
-            pagination: false,
-            req,
-            sort: 'reviewerNumber',
-            where: {
-              and: [{ submission: { equals: doc.id } }, { status: { equals: 'completed' } }],
-            },
-          })
-          await req.payload.sendEmail({
+        const authorId = typeof doc.author === 'object' ? doc.author.id : doc.author
+        const author = await req.payload.findByID({
+          collection: 'users', id: authorId, overrideAccess: true, req,
+        })
+        const reviews = await req.payload.find({
+          collection: 'reviewer-assignments', depth: 0, overrideAccess: true,
+          pagination: false, req, sort: 'reviewerNumber',
+          where: { and: [{ submission: { equals: doc.id } }, { status: { equals: 'completed' } }] },
+        })
+        await enqueueEmail({
+          req,
+          eventKey: `submission-decision:${doc.id}:${doc.status}`,
+          eventType: 'submission-decision',
+          message: {
             to: author.email,
-            subject:
-              doc.locale === 'en'
-                ? 'Decision on your submission — C2I2A'
-                : 'Décision concernant votre soumission — C2I2A',
+            subject: doc.locale === 'en' ? 'Decision on your submission — C2I2A' : 'Décision concernant votre soumission — C2I2A',
             html: await submissionDecisionEmail({
-              locale: doc.locale === 'en' ? 'en' : 'fr',
-              title: doc.title,
-              status: doc.status,
+              locale: doc.locale === 'en' ? 'en' : 'fr', title: doc.title, status: doc.status,
               decisionComments: doc.authorDecisionComments,
               reviewReports: reviews.docs.map((review) => review.authorComments),
             }),
-          })
-        } catch (error) {
-          req.payload.logger.error({ err: error }, 'Submission decision email could not be sent')
-        }
+          },
+        })
         return doc
       },
     ],

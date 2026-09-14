@@ -12,6 +12,7 @@ import sharp from 'sharp'
 import { Committees } from './collections/Committees'
 import { ConferenceDetails } from './collections/ConferenceDetails'
 import { Editions } from './collections/Editions'
+import { EmailOutbox } from './collections/EmailOutbox'
 import { GalleryItems } from './collections/GalleryItems'
 import { ImportantDates } from './collections/ImportantDates'
 import { MagicLinks } from './collections/MagicLinks'
@@ -64,6 +65,7 @@ export default buildConfig({
     ReviewerAssignments,
     SubmissionFiles,
     MagicLinks,
+    EmailOutbox,
     // Program
     Sessions,
     Speakers,

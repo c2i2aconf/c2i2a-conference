@@ -84,8 +84,13 @@ function request(path: string, auth?: string, body?: unknown, method = 'POST') {
 }
 
 describe('registration payments and organizer invitations', () => {
+  let initialOutboxCount = 0
+
   beforeAll(async () => {
     payload = await getPayload({ config })
+    initialOutboxCount = (
+      await payload.count({ collection: 'email-outbox', overrideAccess: true })
+    ).totalDocs
     vi.spyOn(payload, 'sendEmail').mockResolvedValue(undefined)
     const createUser = async (role: User['role']) => {
       const user = await payload.create({
@@ -714,6 +719,12 @@ describe('registration payments and organizer invitations', () => {
         file: { data: pdf, size: pdf.length, mimetype: 'application/pdf', name: 'bypass.pdf' },
       }),
     ).rejects.toThrow()
+  })
+
+  it('does not enqueue payment-proof or invitation-letter notifications', async () => {
+    expect((await payload.count({ collection: 'email-outbox', overrideAccess: true })).totalDocs).toBe(
+      initialOutboxCount,
+    )
   })
 
   afterAll(async () => {

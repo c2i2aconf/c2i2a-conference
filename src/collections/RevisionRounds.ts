@@ -2,6 +2,7 @@ import type { CollectionConfig, FieldAccess } from 'payload'
 
 import { canReadRevisionRounds, isAdminOrEditor } from '@/access'
 import { revisionRequestEmail } from '@/emails/templates'
+import { enqueueEmail } from '@/lib/email-outbox'
 import { getServerURL } from '@/lib/server-url'
 import {
   releaseCompletedReviews,
@@ -132,14 +133,13 @@ export const RevisionRounds: CollectionConfig = {
           req,
         })
 
-        try {
-          const submission = await req.payload.findByID({
-            collection: 'submissions',
-            id: submissionID,
-            depth: 0,
-            overrideAccess: true,
-            req,
-          })
+        const submission = await req.payload.findByID({
+          collection: 'submissions',
+          id: submissionID,
+          depth: 0,
+          overrideAccess: true,
+          req,
+        })
           const authorID = relationshipID(submission.author)
           if (authorID === null) return doc
           const author = await req.payload.findByID({
@@ -164,25 +164,24 @@ export const RevisionRounds: CollectionConfig = {
             },
           })
           const locale = submission.locale === 'en' ? 'en' : 'fr'
-          await req.payload.sendEmail({
-            to: author.email,
-            subject:
-              locale === 'en'
-                ? 'Revision requested for your submission — C2I2A'
-                : 'Révision demandée pour votre soumission — C2I2A',
-            html: await revisionRequestEmail({
-              accountUrl: `${getServerURL()}/${locale}/account`,
-              deadline: doc.deadline,
-              instructions: doc.instructions,
-              locale,
-              roundNumber: doc.roundNumber,
-              title: submission.title,
-              reviewReports: reviews.docs.map((review) => review.authorComments),
-            }),
+          await enqueueEmail({
+            req,
+            eventKey: `revision-request:${doc.id}`,
+            eventType: 'revision-request',
+            message: {
+              to: author.email,
+              subject: locale === 'en' ? 'Revision requested for your submission — C2I2A' : 'Révision demandée pour votre soumission — C2I2A',
+              html: await revisionRequestEmail({
+                accountUrl: `${getServerURL()}/${locale}/account`,
+                deadline: doc.deadline,
+                instructions: doc.instructions,
+                locale,
+                roundNumber: doc.roundNumber,
+                title: submission.title,
+                reviewReports: reviews.docs.map((review) => review.authorComments),
+              }),
+            },
           })
-        } catch (error) {
-          req.payload.logger.error({ err: error }, 'Revision-request email could not be sent')
-        }
         return doc
       },
     ],

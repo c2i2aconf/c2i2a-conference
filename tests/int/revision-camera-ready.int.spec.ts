@@ -1,4 +1,5 @@
-import { getPayload, type Payload } from 'payload'
+import { getPayload, type Payload, type PayloadRequest } from 'payload'
+import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { POST as graphqlPost } from '@/app/(payload)/api/graphql/route'
@@ -11,6 +12,7 @@ import type {
   SubmissionFile,
   User,
 } from '@/payload-types'
+import { withPayloadTransaction } from '@/lib/payload-transaction'
 
 import { createMinimalPDFBuffer, createPublishedLiveEdition } from '../helpers/securityFixtures'
 
@@ -40,6 +42,17 @@ const created = {
   revisionRounds: [] as number[],
   submissions: [] as number[],
   users: [] as number[],
+}
+
+const adapter = () => payload.db as unknown as PostgresAdapter
+
+async function waitForDatabaseCondition(check: () => Promise<boolean>, message: string) {
+  const deadline = Date.now() + 30_000
+  while (Date.now() < deadline) {
+    if (await check()) return
+    await new Promise<void>((resolve) => setImmediate(resolve))
+  }
+  throw new Error(message)
 }
 
 function api(path: string, init?: RequestInit) {
@@ -152,6 +165,7 @@ async function requestRevision(
   submission: Submission,
   deadline = new Date(Date.now() + 7 * 24 * 60 * 60_000).toISOString(),
   actingUser = editor,
+  req?: PayloadRequest,
 ) {
   const round = await payload.create({
     collection: 'revision-rounds',
@@ -169,6 +183,7 @@ async function requestRevision(
     },
     overrideAccess: false,
     user: actingUser,
+    req,
   })
   created.revisionRounds.push(round.id)
   return round
@@ -608,8 +623,122 @@ describe('author revision rounds and camera-ready workflow', () => {
     ).rejects.toThrow()
   })
 
+  it('serializes contradictory concurrent decision and revision operations', async () => {
+    const concurrent = await createSubmission(authorB, editionB, 'concurrent-decision-revision')
+    await prepareForDecision(concurrent.submission)
+    const revisionJobsBefore = await payload.count({
+      collection: 'email-outbox', overrideAccess: true,
+      where: { eventType: { equals: 'revision-request' } },
+    })
+    const lockClient = await adapter().pool.connect()
+    await lockClient.query('BEGIN')
+    const blockerPID = Number((await lockClient.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0].pid)
+    await lockClient.query('SELECT id FROM submissions WHERE id = $1 FOR UPDATE', [concurrent.submission.id])
+    let decisionPID: number | undefined
+    let revisionPID: number | undefined
+    const captureTransactionPID = async (req: PayloadRequest) => {
+      const transactionID = await req.transactionID
+      const transaction = transactionID && adapter().sessions[transactionID]?.db
+      if (!transaction) throw new Error('Expected a submission transition transaction.')
+      const result = await transaction.execute(sql`SELECT pg_backend_pid() AS pid`)
+      const pidRows = Array.isArray(result)
+        ? result
+        : (((result as unknown) as { rows?: Array<{ pid: number }> }).rows ?? [])
+      return Number((pidRows[0] as { pid: number }).pid)
+    }
+    let operations!: readonly [Promise<unknown>, Promise<unknown>]
+    let overlapError: unknown
+    try {
+      operations = [
+        withPayloadTransaction(payload, { user: editor }, async (req) => {
+          decisionPID = await captureTransactionPID(req)
+          return payload.update({
+            collection: 'submissions', id: concurrent.submission.id,
+            data: { status: 'accepted' }, overrideAccess: false, user: editor, req,
+          })
+        }),
+        withPayloadTransaction(payload, { user: editor }, async (req) => {
+          revisionPID = await captureTransactionPID(req)
+          return requestRevision(concurrent.submission, undefined, editor, req)
+        }),
+      ]
+      await waitForDatabaseCondition(
+        async () => decisionPID !== undefined && revisionPID !== undefined,
+        'Both submission transitions did not reach the submission row lock.',
+      )
+      for (const [kind, backendPID] of [
+        ['decision', decisionPID!] as const,
+        ['revision', revisionPID!] as const,
+      ]) {
+        await waitForDatabaseCondition(async () => {
+          const result = await adapter().pool.query<{ blocked: boolean }>(
+            `WITH RECURSIVE blockers(pid) AS (
+               SELECT unnest(pg_blocking_pids($1))
+               UNION
+               SELECT unnest(pg_blocking_pids(blockers.pid)) FROM blockers
+             )
+             SELECT activity.wait_event_type = 'Lock'
+                    AND EXISTS (SELECT 1 FROM blockers WHERE pid = $2::int) AS blocked
+               FROM pg_stat_activity AS activity WHERE activity.pid = $1`,
+            [backendPID, blockerPID],
+          )
+          return result.rows[0]?.blocked === true
+        }, `${kind} backend ${backendPID} did not wait on the held submission row.`)
+      }
+    } catch (error) {
+      overlapError = error
+    } finally {
+      await lockClient.query('COMMIT')
+      lockClient.release()
+    }
+    const outcomes = await Promise.allSettled(operations)
+    if (overlapError) throw overlapError
+    expect(outcomes.filter(({ status }) => status === 'fulfilled')).toHaveLength(1)
+
+    const submission = await payload.findByID({
+      collection: 'submissions', id: concurrent.submission.id, depth: 0, overrideAccess: true,
+    })
+    const rounds = await payload.find({
+      collection: 'revision-rounds', depth: 0, pagination: false, overrideAccess: true,
+      where: { submission: { equals: concurrent.submission.id } },
+    })
+    const decisionJobs = await payload.find({
+      collection: 'email-outbox', depth: 0, pagination: false, overrideAccess: true,
+      where: { eventKey: { equals: `submission-decision:${concurrent.submission.id}:accepted` } },
+    })
+    const revisionJobsAfter = await payload.count({
+      collection: 'email-outbox', overrideAccess: true,
+      where: { eventType: { equals: 'revision-request' } },
+    })
+    if (submission.status === 'accepted') {
+      expect(rounds.docs).toHaveLength(0)
+      expect(decisionJobs.docs).toHaveLength(1)
+      expect(revisionJobsAfter.totalDocs).toBe(revisionJobsBefore.totalDocs)
+    } else {
+      expect(submission.status).toBe('revision-required')
+      expect(rounds.docs).toHaveLength(1)
+      expect(decisionJobs.docs).toHaveLength(0)
+      expect(revisionJobsAfter.totalDocs).toBe(revisionJobsBefore.totalDocs + 1)
+    }
+  })
+
   afterAll(async () => {
     payload.sendEmail = originalSendEmail
+    const outbox = await payload.find({
+      collection: 'email-outbox', depth: 0, pagination: false, overrideAccess: true,
+      where: { eventType: { in: ['revision-request', 'submission-decision'] } },
+    })
+    const keys = new Set([
+      ...created.revisionRounds.map((id) => `revision-request:${id}`),
+      ...created.submissions.flatMap((id) => [
+        `submission-decision:${id}:accepted`, `submission-decision:${id}:rejected`,
+      ]),
+    ])
+    for (const job of outbox.docs) {
+      if (keys.has(job.eventKey)) {
+        await payload.delete({ collection: 'email-outbox', id: job.id, overrideAccess: true })
+      }
+    }
     for (const id of created.assignments.reverse()) {
       await payload.delete({ collection: 'reviewer-assignments', id, overrideAccess: true })
     }

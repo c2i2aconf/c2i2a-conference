@@ -4,6 +4,8 @@ import { getPayload, jwtSign } from 'payload'
 
 import configPromise from '@payload-config'
 import { getServerURL } from '@/lib/server-url'
+import { cancelMagicLinkEmails } from '@/lib/email-outbox'
+import { withPayloadTransaction } from '@/lib/payload-transaction'
 
 /**
  * GET /[locale]/auth/verify?token=…
@@ -23,44 +25,42 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ loca
     const payload = await getPayload({ config: configPromise })
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
 
-    const { docs: links } = await payload.find({
-      collection: 'magic-links',
-      where: {
-        and: [
-          { tokenHash: { equals: tokenHash } },
-          { consumedAt: { exists: false } },
+    const claimed = await withPayloadTransaction(payload, { headers: req.headers }, async (transactionReq) => {
+      const { docs: links } = await payload.find({
+        collection: 'magic-links',
+        where: { and: [
+          { tokenHash: { equals: tokenHash } }, { consumedAt: { exists: false } },
           { expiresAt: { greater_than: new Date().toISOString() } },
-        ],
-      },
-      limit: 1,
-      overrideAccess: true,
-    })
-    const magicLink = links[0]
-    if (!magicLink) return fail()
-
-    const { docs: users } = await payload.find({
-      collection: 'users',
-      where: { email: { equals: magicLink.email } },
-      limit: 1,
-      overrideAccess: true,
-    })
-    const user = users[0]
-    if (!user || !['author', 'attendee'].includes(user.role)) return fail()
-
-    // The conditional bulk update is the atomic single-use claim.
-    const consumed = await payload.update({
-      collection: 'magic-links',
-      where: {
-        and: [
-          { id: { equals: magicLink.id } },
-          { consumedAt: { exists: false } },
+        ] },
+        limit: 1, overrideAccess: true, req: transactionReq,
+      })
+      const magicLink = links[0]
+      if (!magicLink) return null
+      const { docs: users } = await payload.find({
+        collection: 'users', where: { email: { equals: magicLink.email } },
+        limit: 1, overrideAccess: true, req: transactionReq,
+      })
+      const user = users[0]
+      if (!user || !['author', 'attendee'].includes(user.role)) return null
+      const consumed = await payload.update({
+        collection: 'magic-links',
+        where: { and: [
+          { id: { equals: magicLink.id } }, { consumedAt: { exists: false } },
           { expiresAt: { greater_than: new Date().toISOString() } },
-        ],
-      },
-      data: { consumedAt: new Date().toISOString() },
-      overrideAccess: true,
+        ] },
+        data: { consumedAt: new Date().toISOString() }, overrideAccess: true, req: transactionReq,
+      })
+      if (consumed.docs.length !== 1) return null
+      await cancelMagicLinkEmails(transactionReq, [magicLink.id])
+      await payload.update({
+        collection: 'registrations',
+        where: { and: [{ email: { equals: magicLink.email } }, { user: { exists: false } }] },
+        data: { user: user.id }, overrideAccess: true, req: transactionReq,
+      })
+      return { magicLink, user }
     })
-    if (consumed.docs.length !== 1) return fail()
+    if (!claimed) return fail()
+    const { user } = claimed
 
     const usersConfig = payload.config.collections.find(({ slug }) => slug === 'users')
     if (!usersConfig || !usersConfig.auth) return fail()
@@ -73,16 +73,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ loca
       },
       secret: payload.config.secret,
       tokenExpiration: usersConfig.auth.tokenExpiration,
-    })
-
-    // Link any registrations made with this email to the account
-    await payload.update({
-      collection: 'registrations',
-      where: {
-        and: [{ email: { equals: magicLink.email } }, { user: { exists: false } }],
-      },
-      data: { user: user.id },
-      overrideAccess: true,
     })
 
     const response = NextResponse.redirect(new URL(`/${locale}/account`, getServerURL()))

@@ -1,4 +1,5 @@
 import { APIError, type PayloadRequest } from 'payload'
+import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 
 import { relationshipID } from '@/lib/workflow-boundary'
 
@@ -6,6 +7,16 @@ export const REVISION_TRANSITION_CONTEXT = 'revisionTransition'
 
 export function isInternalRevisionTransition(req: PayloadRequest) {
   return req.context?.[REVISION_TRANSITION_CONTEXT] === true
+}
+
+export async function lockSubmission(req: PayloadRequest, id: number) {
+  const transactionID = await req.transactionID
+  const adapter = req.payload.db as unknown as PostgresAdapter
+  const transaction = transactionID && adapter.sessions[transactionID]?.db
+  if (!transaction) throw new APIError('A submission transaction is required.', 409, undefined, true)
+  await (transaction as { execute: (query: unknown) => Promise<unknown> }).execute(
+    sql`SELECT id FROM submissions WHERE id = ${id} FOR UPDATE`,
+  )
 }
 
 export async function getLatestSubmittedRevisionRound(req: PayloadRequest, submissionID: number) {

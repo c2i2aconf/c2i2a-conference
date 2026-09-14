@@ -10,9 +10,11 @@ import {
   LOGIN_LINK_TTL_MINUTES,
   clientAddressFromHeaders,
   cleanupMagicLinks,
-  createMagicLinkUrl,
+  createMagicLink,
   ensurePortalUser,
 } from '@/lib/magic-link'
+import { enqueueEmail, processEmailOutbox } from '@/lib/email-outbox'
+import { withPayloadTransaction } from '@/lib/payload-transaction'
 import { shouldThrottleMagicLink } from '@/lib/workflow-policy'
 
 const EMAIL_WINDOW_MS = 15 * 60_000
@@ -28,7 +30,7 @@ export type MagicLinkResult = {
 /**
  * Sends a passwordless sign-in link.
  * Creates the author account on first use. In dev (no RESEND_API_KEY) the link
- * is logged to the server console and returned so the UI can display it.
+ * is returned to the caller so the UI can display it without entering logs.
  */
 export async function requestMagicLink(
   formData: FormData,
@@ -77,39 +79,41 @@ export async function requestMagicLink(
       return { success: true }
     }
 
-    await cleanupMagicLinks(payload, now)
-
-    // Elevated CMS users keep password-only admin authentication.
-    const user = await ensurePortalUser(email, 'author')
-    if (!user) {
-      return { success: true }
-    }
-
-    const link = await createMagicLinkUrl({
-      email,
-      locale,
-      ttlMinutes: LOGIN_LINK_TTL_MINUTES,
-      requestHeaders,
+    const link = await withPayloadTransaction(payload, { headers: requestHeaders }, async (req) => {
+      await cleanupMagicLinks(payload, now, req)
+      const user = await ensurePortalUser(email, 'author', req)
+      if (!user) return null
+      const created = await createMagicLink({
+        email, locale, ttlMinutes: LOGIN_LINK_TTL_MINUTES, requestHeaders, req,
+      })
+      await enqueueEmail({
+        req, eventKey: `magic-link:${created.id}`, eventType: 'magic-link',
+        magicLink: created.id, messageExpiresAt: created.expiresAt,
+        message: {
+          to: email,
+          subject: locale === 'fr' ? 'Votre lien de connexion — C2I2A' : 'Your sign-in link — C2I2A',
+          html: await magicLinkEmail(locale, created.url, LOGIN_LINK_TTL_MINUTES),
+        },
+      })
+      return { url: created.url, eventKey: `magic-link:${created.id}` }
     })
+    if (!link) return { success: true }
 
     // Without RESEND_API_KEY Payload silently falls back to a console
     // adapter that never throws — detect it explicitly so the link is
     // still surfaced in local dev
     const emailConfigured = Boolean(process.env.RESEND_API_KEY)
 
-    try {
-      await payload.sendEmail({
-        to: email,
-        subject: locale === 'fr' ? 'Votre lien de connexion — C2I2A' : 'Your sign-in link — C2I2A',
-        html: await magicLinkEmail(locale, link, LOGIN_LINK_TTL_MINUTES),
-      })
-    } catch (emailError) {
-      console.warn(`Magic link email not sent (${email})`, emailError)
+    if (emailConfigured) {
+      try {
+        await processEmailOutbox(payload, { eventKey: link.eventKey })
+      } catch (error) {
+        console.warn('Magic-link delivery deferred to retry worker', error)
+      }
     }
 
     if (!emailConfigured && process.env.NODE_ENV !== 'production') {
-      console.log(`Magic link for ${email}: ${link}`)
-      return { success: true, devLink: link }
+      return { success: true, devLink: link.url }
     }
 
     return { success: true }

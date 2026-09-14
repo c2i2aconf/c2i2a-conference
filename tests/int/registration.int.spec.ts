@@ -14,6 +14,7 @@ import { registerAction } from '@/lib/actions/register'
 let payload: Payload
 let createdEditionId: number | null = null
 let createdRegistrationIds: number[] = []
+let createdOutboxIds: number[] = []
 // registerAction provisions a portal account + magic link per registration
 let createdUserEmail: string | null = null
 
@@ -55,6 +56,11 @@ describe('anonymous registration', () => {
       overrideAccess: true,
     })
     createdRegistrationIds = docs.map((doc) => doc.id)
+    const outbox = await payload.find({
+      collection: 'email-outbox', depth: 0, pagination: false, overrideAccess: true,
+      where: { eventKey: { in: docs.map((doc) => `registration-confirmation:${doc.id}`) } },
+    })
+    createdOutboxIds = outbox.docs.map((doc) => doc.id)
     expect(docs).toHaveLength(1)
     expect(docs[0].status).toBe('confirmed')
 
@@ -68,6 +74,9 @@ describe('anonymous registration', () => {
   })
 
   afterAll(async () => {
+    for (const id of createdOutboxIds) {
+      await payload.delete({ collection: 'email-outbox', id, overrideAccess: true })
+    }
     for (const id of createdRegistrationIds) {
       await payload.delete({ collection: 'registrations', id, overrideAccess: true })
     }

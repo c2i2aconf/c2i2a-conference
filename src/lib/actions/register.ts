@@ -6,9 +6,11 @@ import configPromise from '@payload-config'
 import { registrationEmail } from '@/emails/templates'
 import {
   REGISTRATION_LINK_TTL_MINUTES,
-  createMagicLinkUrl,
+  createMagicLink,
   ensurePortalUser,
 } from '@/lib/magic-link'
+import { enqueueEmail, processEmailOutbox } from '@/lib/email-outbox'
+import { withPayloadTransaction } from '@/lib/payload-transaction'
 import { getLiveEdition } from '../queries'
 
 export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
@@ -33,89 +35,54 @@ export async function registerAction(formData: FormData, locale: 'fr' | 'en') {
     const payload = await getPayload({ config: configPromise })
     const requestHeaders = await headers()
 
-    // Check for duplicates — internal existence check; registrations
-    // are admin/self-readable so anonymous requests must bypass access
     const existing = await payload.find({
-      collection: 'registrations',
-      where: {
-        and: [
-          { email: { equals: email } },
-          { edition: { equals: edition.id } },
-          { status: { equals: 'confirmed' } },
-        ],
-      },
-      limit: 1,
-      overrideAccess: true,
+      collection: 'registrations', limit: 1, overrideAccess: true,
+      where: { and: [
+        { email: { equals: email } }, { edition: { equals: edition.id } },
+        { status: { equals: 'confirmed' } },
+      ] },
     })
-
-    if (existing.totalDocs > 0) {
-      return { success: false, error: 'duplicate_email' }
-    }
+    if (existing.totalDocs > 0) return { success: false, error: 'duplicate_email' }
 
     const { user } = await payload.auth({ headers: requestHeaders })
     const linkedUser = user && user.email.toLowerCase() === email ? user.id : undefined
-
-    await payload.create({
-      collection: 'registrations',
-      data: {
-        firstName,
-        lastName,
-        email,
-        locale,
-        user: linkedUser,
-        affiliation,
-        country,
-        edition: edition.id,
-        status: 'confirmed',
-        feeCategory: String(formData.get('feeCategory') || '') || undefined,
-        feeCurrency: (String(formData.get('feeCurrency') || '') || undefined) as
-          'MAD' | 'EUR' | undefined,
-      },
-      overrideAccess: false,
-      user,
-    })
-
-    // The confirmation email carries a single-use sign-in link so registrants
-    // can reach their account and submit a paper. Elevated CMS accounts never
-    // get links, and a link failure must not fail the registration.
-    let signInUrl: string | undefined
-    try {
-      const portalUser = await ensurePortalUser(email, 'attendee')
-      if (portalUser) {
-        signInUrl = await createMagicLinkUrl({
-          email,
-          locale,
-          ttlMinutes: REGISTRATION_LINK_TTL_MINUTES,
-          requestHeaders,
-        })
-      }
-    } catch (linkError) {
-      console.error('Failed to create registration sign-in link', linkError)
-    }
-
-    // Without RESEND_API_KEY Payload silently falls back to a console adapter
-    // that never throws — detect it so the UI can warn the registrant.
-    const emailConfigured = Boolean(process.env.RESEND_API_KEY)
-    let emailSent = emailConfigured
-    if (emailConfigured) {
-      try {
-        await payload.sendEmail({
+    const eventKey = await withPayloadTransaction(payload, { headers: requestHeaders, user }, async (req) => {
+      const registration = await payload.create({
+        collection: 'registrations',
+        data: {
+          firstName, lastName, email, locale, user: linkedUser, affiliation, country,
+          edition: edition.id, status: 'confirmed',
+          feeCategory: String(formData.get('feeCategory') || '') || undefined,
+          feeCurrency: (String(formData.get('feeCurrency') || '') || undefined) as 'MAD' | 'EUR' | undefined,
+        },
+        overrideAccess: false, user, req,
+      })
+      const portalUser = await ensurePortalUser(email, 'attendee', req)
+      const signIn = portalUser
+        ? await createMagicLink({ email, locale, ttlMinutes: REGISTRATION_LINK_TTL_MINUTES, requestHeaders, req })
+        : undefined
+      const key = `registration-confirmation:${registration.id}`
+      await enqueueEmail({
+        req, eventKey: key, eventType: 'registration-confirmation',
+        magicLink: signIn?.id, messageExpiresAt: signIn?.expiresAt,
+        message: {
           to: email,
-          subject:
-            locale === 'fr'
-              ? "Confirmation d'inscription - C2I2A"
-              : 'Registration Confirmation - C2I2A',
-          html: await registrationEmail(locale, firstName, signInUrl),
-        })
-      } catch (emailError) {
-        emailSent = false
-        console.error('Failed to send confirmation email', emailError)
+          subject: locale === 'fr' ? "Confirmation d'inscription - C2I2A" : 'Registration Confirmation - C2I2A',
+          html: await registrationEmail(locale, firstName, signIn?.url),
+        },
+      })
+      return key
+    })
+    if (process.env.RESEND_API_KEY) {
+      try { await processEmailOutbox(payload, { eventKey }) } catch (error) {
+        console.error('Registration email delivery deferred to retry worker', error)
       }
-    } else {
-      console.warn('Registration email skipped — RESEND_API_KEY is not set')
     }
-
-    return { success: true, emailSent }
+    const queued = await payload.find({
+      collection: 'email-outbox', depth: 0, limit: 1, overrideAccess: true,
+      where: { eventKey: { equals: eventKey } },
+    })
+    return { success: true, emailSent: queued.docs[0]?.status === 'sent' }
   } catch (error) {
     console.error('Registration error', error)
     return { success: false, error: 'server_error' }
