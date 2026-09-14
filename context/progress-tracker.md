@@ -70,6 +70,18 @@
 
 ## In progress
 
+### Durable email outbox and retry delivery — 2026-09-13
+
+- [x] Implemented one transactional Payload/Postgres outbox for registration confirmation, submission receipt, magic-link, final decision, and revision request notifications.
+- [x] Added encrypted immutable message snapshots, stable event/provider idempotency keys, six-attempt retry scheduling, `Retry-After`, 24-hour ambiguity quarantine, and send/cancel/expiry scrubbing.
+- [x] Added short `SKIP LOCKED` leases, provider timeout shorter than the lease, lease-token guarded outcomes, expired-lease recovery, and stronger serialized submission decisions.
+- [x] Added admin-only metadata access, blocked generic writes, audited eligibility-limited manual retry, and a `CRON_SECRET`-secured Vercel Cron-compatible route.
+- [x] Preserved original magic-link TTL/single-use/dev response behavior and cancelled expired, consumed, or superseded token jobs without regenerating tokens.
+- [x] Generated Payload types and reviewed/applied additive migration `20260913_194745_email_outbox` only to guarded `TEST_DATABASE_URL`; no production migration or reset/fresh command was run.
+- [x] Targeted affected integration results: 53 tests passed across outbox, submission/outbox, registration, peer-review, revision/camera-ready, payment/invitation, and security suites. Test bootstrap clears inherited Resend credentials; transport tests use a fake key and injected HTTP mock.
+- [x] Final lint, TypeScript, `git diff --check`, and production build pass (39 static pages). Existing workflows and public UI were not redesigned.
+- [ ] Owner review and production secret/cron configuration remain required; no commit or push was performed.
+
 ### ICAIA 2027 public content and minimum model — 2026-09-10
 
 - [x] Audited retained ICAIA’27 facts against current collections, workflow boundaries, queries, and frontend consumers.
@@ -329,6 +341,10 @@ The project does not need a rewrite. The next highest-value work is to make the 
 
 ## Registration payment proof and invitation workflow — 2026-09-13
 
+### Status
+
+- [x] Merged and completed before the durable email-outbox ticket began.
+
 ### Implemented
 
 - [x] Read AGENTS.md and every context file; inspected existing registration/users, merged review/revision/camera-ready workflows, gates, uploads, private storage, account portal, fee configuration, access helpers and email infrastructure.
@@ -345,7 +361,7 @@ The project does not need a rewrite. The next highest-value work is to make the 
 - [x] Initial new suite passed 16 tests; expanded suite passed 18 tests. First full run passed 65/66; the remaining legacy mock lacked Payload's docs array and was corrected.
 - [x] Final full-suite verification passed: 9 files / 66 tests. Lint/types/build and all six public/archive routes also passed.
 - [x] Public 2027 registration and submission gates and all 2024/2025/2027 factual source data remain unchanged.
-- [x] No commit or push.
+- [x] Completed implementation and verification were merged.
 
 ### Deferred / remaining risks
 
@@ -354,7 +370,6 @@ The project does not need a rewrite. The next highest-value work is to make the 
 - [ ] No new workflow emails; existing registration confirmation remains best-effort. Durable retry/outbox remains deferred.
 - [ ] No card payments, bank integration/reconciliation, invoices/tax receipts, journal workflows, review redesign or public redesign.
 - [ ] Existing active duplicate identities would block migration for explicit reconciliation rather than deleting historical data.
-- [ ] Owner review is required before commit or push.
 
 ### Final verification notes — payment/invitation ticket
 
@@ -365,4 +380,4 @@ The project does not need a rewrite. The next highest-value work is to make the 
 - [x] Corrected the legacy hook mock to return Payload's docs array. Calibrated slow double-import timeouts to 180 seconds for 2025 and 360 seconds for 2027 after successful isolated retries; assertions remain unchanged.
 - [x] Final full run passed on 2026-09-13: 9 files / 66 tests, exit 0, duration 1152.99 seconds. Earlier import timeouts are resolved.
 - [x] Removed temporary import timing instrumentation and task verification scripts after recording the results.
-- [x] No production migration/reset and no commit/push.
+- [x] No production migration or reset was performed as part of the completed ticket.

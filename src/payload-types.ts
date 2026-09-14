@@ -75,6 +75,7 @@ export interface Config {
     'reviewer-assignments': ReviewerAssignment;
     'submission-files': SubmissionFile;
     'magic-links': MagicLink;
+    'email-outbox': EmailOutbox;
     sessions: Session;
     speakers: Speaker;
     rooms: Room;
@@ -103,6 +104,7 @@ export interface Config {
     'reviewer-assignments': ReviewerAssignmentsSelect<false> | ReviewerAssignmentsSelect<true>;
     'submission-files': SubmissionFilesSelect<false> | SubmissionFilesSelect<true>;
     'magic-links': MagicLinksSelect<false> | MagicLinksSelect<true>;
+    'email-outbox': EmailOutboxSelect<false> | EmailOutboxSelect<true>;
     sessions: SessionsSelect<false> | SessionsSelect<true>;
     speakers: SpeakersSelect<false> | SpeakersSelect<true>;
     rooms: RoomsSelect<false> | RoomsSelect<true>;
@@ -593,6 +595,40 @@ export interface MagicLink {
   createdAt: string;
 }
 /**
+ * Delivery metadata only. Message content is encrypted and automatically scrubbed.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-outbox".
+ */
+export interface EmailOutbox {
+  id: number;
+  eventKey: string;
+  eventType:
+    'registration-confirmation' | 'submission-receipt' | 'magic-link' | 'submission-decision' | 'revision-request';
+  status: 'pending' | 'processing' | 'retrying' | 'sent' | 'failed' | 'cancelled' | 'ambiguous';
+  attempts: number;
+  nextAttemptAt: string;
+  leaseToken?: string | null;
+  leaseExpiresAt?: string | null;
+  providerIdempotencyKey: string;
+  encryptedMessage?: string | null;
+  messageExpiresAt?: string | null;
+  requiresMagicLink: boolean;
+  magicLink?: (number | null) | MagicLink;
+  firstAttemptAt?: string | null;
+  lastAttemptAt?: string | null;
+  sentAt?: string | null;
+  cancelledAt?: string | null;
+  providerMessageId?: string | null;
+  lastErrorCode?: string | null;
+  lastError?: string | null;
+  manualRetryAt?: string | null;
+  manualRetryBy?: (number | null) | User;
+  manualRetryReason?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sessions".
  */
@@ -827,6 +863,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'magic-links';
         value: number | MagicLink;
+      } | null)
+    | ({
+        relationTo: 'email-outbox';
+        value: number | EmailOutbox;
       } | null)
     | ({
         relationTo: 'sessions';
@@ -1089,6 +1129,36 @@ export interface MagicLinksSelect<T extends boolean = true> {
   locale?: T;
   expiresAt?: T;
   consumedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-outbox_select".
+ */
+export interface EmailOutboxSelect<T extends boolean = true> {
+  eventKey?: T;
+  eventType?: T;
+  status?: T;
+  attempts?: T;
+  nextAttemptAt?: T;
+  leaseToken?: T;
+  leaseExpiresAt?: T;
+  providerIdempotencyKey?: T;
+  encryptedMessage?: T;
+  messageExpiresAt?: T;
+  requiresMagicLink?: T;
+  magicLink?: T;
+  firstAttemptAt?: T;
+  lastAttemptAt?: T;
+  sentAt?: T;
+  cancelledAt?: T;
+  providerMessageId?: T;
+  lastErrorCode?: T;
+  lastError?: T;
+  manualRetryAt?: T;
+  manualRetryBy?: T;
+  manualRetryReason?: T;
   updatedAt?: T;
   createdAt?: T;
 }

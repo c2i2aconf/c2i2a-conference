@@ -15,9 +15,22 @@ export function getServerURL(): string {
 export function assertProductionEnvironment() {
   if (process.env.NODE_ENV !== 'production') return
 
-  const required = ['DATABASE_URL', 'PAYLOAD_SECRET'] as const
+  const required = [
+    'DATABASE_URL',
+    'PAYLOAD_SECRET',
+    'EMAIL_OUTBOX_ENCRYPTION_KEY',
+    'RESEND_API_KEY',
+    'CRON_SECRET',
+  ] as const
   const missing = required.filter((key) => !process.env[key]?.trim())
   if (missing.length > 0) {
     throw new Error(`Missing required production environment variables: ${missing.join(', ')}`)
+  }
+  const encryptedKey = process.env.EMAIL_OUTBOX_ENCRYPTION_KEY!.trim()
+  const decoded = /^[a-f\d]{64}$/i.test(encryptedKey)
+    ? Buffer.from(encryptedKey, 'hex')
+    : Buffer.from(encryptedKey, 'base64')
+  if (decoded.length !== 32) {
+    throw new Error('EMAIL_OUTBOX_ENCRYPTION_KEY must decode to exactly 32 bytes.')
   }
 }

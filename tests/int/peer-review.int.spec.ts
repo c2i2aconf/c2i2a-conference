@@ -1,4 +1,6 @@
 import { getPayload, type Payload } from 'payload'
+import type { PostgresAdapter } from '@payloadcms/db-postgres'
+import { decryptEmailMessage } from '@/lib/email-outbox'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { GET as restGet } from '@/app/(payload)/api/[...slug]/route'
@@ -357,13 +359,7 @@ describe('ICAIA peer-review workflow', () => {
     })
     expect(unreleased.docs).toHaveLength(0)
 
-    const originalSendEmail = payload.sendEmail
-    let sentHTML = ''
-    payload.sendEmail = (async (options) => {
-      sentHTML = typeof options.html === 'string' ? options.html : ''
-    }) as typeof payload.sendEmail
-    try {
-      const revisionRound = await payload.create({
+    const revisionRound = await payload.create({
         collection: 'revision-rounds',
         data: {
           deadline: new Date(Date.now() + 7 * 24 * 60 * 60_000).toISOString(),
@@ -379,10 +375,19 @@ describe('ICAIA peer-review workflow', () => {
         overrideAccess: false,
         user: editor,
       })
-      created.revisionRounds.push(revisionRound.id)
-    } finally {
-      payload.sendEmail = originalSendEmail
-    }
+    created.revisionRounds.push(revisionRound.id)
+    const outbox = await payload.find({
+      collection: 'email-outbox', depth: 0, limit: 1, overrideAccess: true,
+      where: { eventKey: { equals: `revision-request:${revisionRound.id}` } },
+    })
+    const encrypted = (await (payload.db as unknown as PostgresAdapter).pool.query(
+      'SELECT encrypted_message FROM email_outbox WHERE id = $1',
+      [outbox.docs[0].id],
+    )).rows[0].encrypted_message as string
+    const sentHTML = decryptEmailMessage(
+      outbox.docs[0].eventKey,
+      encrypted,
+    ).html
     expect(sentHTML).toContain('Strong contribution with minor presentational issues.')
     expect(sentHTML).toContain('A revision can resolve the remaining concerns.')
     expect(sentHTML).not.toContain('Identity-linked editor-only note.')
@@ -505,6 +510,21 @@ describe('ICAIA peer-review workflow', () => {
   })
 
   afterAll(async () => {
+    const outbox = await payload.find({
+      collection: 'email-outbox', depth: 0, pagination: false, overrideAccess: true,
+      where: { eventType: { in: ['revision-request', 'submission-decision'] } },
+    })
+    const keys = new Set([
+      ...created.revisionRounds.map((id) => `revision-request:${id}`),
+      ...created.submissions.flatMap((id) => [
+        `submission-decision:${id}:accepted`, `submission-decision:${id}:rejected`,
+      ]),
+    ])
+    for (const job of outbox.docs) {
+      if (keys.has(job.eventKey)) {
+        await payload.delete({ collection: 'email-outbox', id: job.id, overrideAccess: true })
+      }
+    }
     for (const id of created.assignments.reverse()) {
       await payload.delete({ collection: 'reviewer-assignments', id, overrideAccess: true })
     }
